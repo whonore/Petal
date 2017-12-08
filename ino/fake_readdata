@@ -1,0 +1,94 @@
+#!/bin/bash
+# OneBox
+# fake_readdata
+# Wolf Honore
+#
+# Fake data from an Arduino for testing. Can either control with 'read' arg or
+# use random data with 'rand' arg.
+
+# Create a pseudoterminal with socat named tmppty
+SOCAT_OPTS="-d -d -u - PTY,b9600,echo=0,link=tmppty"
+
+SYNC_VAL=13
+DEL=1
+NFXS=4
+NCTRLS=5
+
+# Print a number as a raw byte
+raw_print () {
+    printf \\x$(printf %x $1)
+}
+
+# Print out all values
+print_data() {
+    raw_print $SYNC_VAL
+    raw_print $1 # muteVal
+    raw_print $2 # leftVal
+    raw_print $3 # rightVal
+    for i in $4; do
+        raw_print $i # idxsVal
+    done
+    for i in $5; do
+        raw_print $(($i & 0xFF)) # lowByte
+        raw_print $(($i >> 8)) # highByte
+    done
+
+    sleep $DEL
+}
+
+# Generate random values
+randdata () {
+    while true; do
+        MUTE=$(($RANDOM % 2))
+        LEFT=$(($RANDOM % 2))
+        RIGHT=$(($RANDOM % 2))
+        IDXS=
+        for i in $(seq 1 $NFXS); do
+            IDXS+="$(($RANDOM % 2)) " # idxsVal
+        done
+        CTRLDATA=
+        for i in $(seq 1 $NCTRLS); do
+            CTRLDATA+="$((RANDOM % 1024)) " # control data
+        done
+
+        print_data $MUTE $LEFT $RIGHT "$IDXS" "$CTRLDATA"
+    done
+}
+
+# Generate values based on user input
+readdata() {
+    while true; do
+        MUTE=0
+        LEFT=0
+        RIGHT=0
+        IDXS=
+        for i in $(seq 1 $NFXS); do
+            IDXS+="0 " # idxsVal
+        done
+        CTRLDATA=
+        for i in $(seq 1 $NCTRLS); do
+            CTRLDATA+="0 " # control data
+        done
+
+        # TODO: add commands for idx and ctrldata
+        # TODO: fix stdout so can actually read
+        echo "Enter command:"
+        read cmd
+        case $cmd in
+            mute) MUTE=1;;
+            left) LEFT=1;;
+            right) RIGHT=1;;
+            *) echo "Invalid command"
+        esac
+
+        # Send 0's after to simulate press and release
+        print_data $MUTE $LEFT $RIGHT "$IDXS" "$CTRLDATA"
+        print_data 0 0 0 "$IDXS" "$CTRLDATA"
+    done
+}
+
+case $1 in
+    read) readdata | socat $SOCAT_OPTS;;
+    rand) randdata | socat $SOCAT_OPTS;;
+    *) echo "usage: $0 [read | rand]";;
+esac

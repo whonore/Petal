@@ -9,6 +9,7 @@
 (
 Server.default.quit;
 Server.default.waitForBoot({
+    var debug = true;
     var portName, port, syncVal, delay;
     var minFreq, maxFreq;
     var nfxs, nctrls, grp, fxs, ctrls;
@@ -21,7 +22,7 @@ Server.default.waitForBoot({
     ~serv.sync;
 
     // Serial Init
-    portName = "/dev/ttyACM0";
+    portName = if (debug.not, { "/dev/ttyACM0" }, { "../ino/tmppty".resolveRelative });
     syncVal = 13; // Special value to mark start of send
     delay = 1; // msec to wait between sending data
     port = SerialPort(
@@ -38,6 +39,7 @@ Server.default.waitForBoot({
             port.close;
             ~serv.sync;
             ~serv.quit;
+            ~common_loaded = nil;
         }.fork;
     });
     ~serv.sync;
