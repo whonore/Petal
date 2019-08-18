@@ -14,7 +14,7 @@ Server.default.waitForBoot({
     var minFreq, maxFreq;
     var nfxs, nctrls, grp, fxs, ctrls;
     var active, avail, locked, curIdx;
-    var readData, cycleActive, main;
+    var readData, cycleActive, debugLog, main;
 
     // Imports
     "common.scd".loadRelative(true);
@@ -147,6 +147,20 @@ Server.default.waitForBoot({
         active[curIdx];
     };
 
+    debugLog = {|curIdx, muted, active, ctrls, locked|
+        postf("CurIdx: %\nActive: %\nMuted: %\n", curIdx, active[curIdx].defName, muted.notNil);
+        active[1..].do {|fx, idx|
+            postf("% %controls: [ ", fx.defName, if (locked[idx + 1], { "(locked) " }, { "" }));
+            ctrls[fx.defName].do {|ctrl|
+                fx.get(ctrl.key, {|val|
+                    postf("%=% ", ctrl.key, val);
+                });
+            };
+            ~serv.sync;
+            "]".postln;
+        };
+    };
+
     // Main event loop
     main = Routine {
         var oldMute = 0;
@@ -163,9 +177,6 @@ Server.default.waitForBoot({
             fx = active[curIdx];
             fxName = fx.defName;
             ctrl = ctrls[fxName];
-
-            ("Active: " + fxName).postln;
-            ("Mute: " + muted.notNil).postln;
 
             #mute, leftRight, idxs, data = readData.value();
 
@@ -209,6 +220,9 @@ Server.default.waitForBoot({
             if (locked[curIdx].not, {
                 fx.set(*vals);
             });
+
+            // Log new values
+            debugLog.value(curIdx, muted, active, ctrls, locked);
 
             oldMute = mute;
             oldLeftRight = leftRight;

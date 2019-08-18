@@ -7,16 +7,23 @@
 # use random data with 'rand' arg.
 
 # Create a pseudoterminal with socat named tmppty
-SOCAT_OPTS="-d -d -u - PTY,b9600,echo=0,link=tmppty"
+DIR="$(cd "$(dirname "$0")" >/dev/null 2>&1 && pwd)"
+PTY="$DIR/tmppty"
+SOCAT_OPTS="-d -d -u - PTY,b9600,echo=0,link=$PTY"
 
 SYNC_VAL=13
-DEL=1
+DEL=0.001
 NFXS=4
 NCTRLS=5
 
 # Print a number as a raw byte
 raw_print () {
     printf \\x$(printf %x $1)
+}
+
+# Print user message to stderr
+display () {
+    echo $@ 1>&2
 }
 
 # Print out all values
@@ -36,6 +43,63 @@ print_data() {
     sleep $DEL
 }
 
+# Only reset the on/off values
+reset_buttons() {
+    MUTE=0
+    LEFT=0
+    RIGHT=0
+    IDXS=
+    for i in $(seq 1 $NFXS); do
+        IDXS+="0 "
+    done
+}
+
+# Reset all values
+reset_all() {
+    reset_buttons
+    CTRLDATA=
+    for i in $(seq 1 $NCTRLS); do
+        CTRLDATA+="0 "
+    done
+}
+
+# Set IDXS
+set_idx() {
+    idx=$1
+    if ((idx < $NFXS)); then
+        read -r -a idxs <<< "$IDXS"
+        idxs[$idx]=1
+        IDXS="${idxs[*]}"
+    else display "idx must be in range [0, $NFXS)"
+    fi
+}
+
+# Set CTRLDATA
+set_ctrl() {
+    ctrls=($@)
+    read -r -a old <<< "$CTRLDATA"
+    CTRLDATA=
+    for i in $(seq 1 $NCTRLS); do
+        if [[ ${ctrls[$i]} == "" ]]
+            then CTRLDATA+="${old[$i]} "
+            else CTRLDATA+="${ctrls[$i]} "
+        fi
+    done
+}
+
+# Read a command
+read_command() {
+    read -p "Enter command: " -a cmd
+    case ${cmd[0]} in
+        mute) MUTE=1;;
+        left) LEFT=1;;
+        right) RIGHT=1;;
+        idx) set_idx ${cmd[1]};;
+        ctrl) set_ctrl "${cmd[*]}";;
+        *) display "Must be: mute | left | right | idx {num} | ctrl {num}x$NCTRLS"
+    esac
+}
+
 # Generate random values
 randdata () {
     while true; do
@@ -44,11 +108,11 @@ randdata () {
         RIGHT=$(($RANDOM % 2))
         IDXS=
         for i in $(seq 1 $NFXS); do
-            IDXS+="$(($RANDOM % 2)) " # idxsVal
+            IDXS+="$(($RANDOM % 2)) "
         done
         CTRLDATA=
         for i in $(seq 1 $NCTRLS); do
-            CTRLDATA+="$((RANDOM % 1024)) " # control data
+            CTRLDATA+="$((RANDOM % 1024)) "
         done
 
         print_data $MUTE $LEFT $RIGHT "$IDXS" "$CTRLDATA"
@@ -57,31 +121,13 @@ randdata () {
 
 # Generate values based on user input
 readdata() {
+    reset_all
     while true; do
-        MUTE=0
-        LEFT=0
-        RIGHT=0
-        IDXS=
-        for i in $(seq 1 $NFXS); do
-            IDXS+="0 " # idxsVal
-        done
-        CTRLDATA=
-        for i in $(seq 1 $NCTRLS); do
-            CTRLDATA+="0 " # control data
-        done
-
-        # TODO: add commands for idx and ctrldata
-        # TODO: fix stdout so can actually read
-        echo "Enter command:"
-        read cmd
-        case $cmd in
-            mute) MUTE=1;;
-            left) LEFT=1;;
-            right) RIGHT=1;;
-            *) echo "Invalid command"
-        esac
+        reset_buttons
+        read_command
 
         # Send 0's after to simulate press and release
+        display $MUTE $LEFT $RIGHT "$IDXS" "$CTRLDATA"
         print_data $MUTE $LEFT $RIGHT "$IDXS" "$CTRLDATA"
         print_data 0 0 0 "$IDXS" "$CTRLDATA"
     done
