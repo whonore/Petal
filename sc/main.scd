@@ -143,25 +143,21 @@ Server.default.waitForBoot({
 
     // Main event loop
     main = Routine {
-        var oldMute = 0;
-        var oldLeftRight = 0 ! 2;
-        var oldIdxs = 0 ! nfxs;
-        var oldData = 0 ! nctrls;
         var muted = nil;
 
         loop {
             var fx, fxName;
-            var mute, leftRight, idxs;
-            var ctrl, data, vals;
+            var mute, left, right, idxs;
+            var ctrl, data, newData, vals;
 
             fx = active[curIdx];
             fxName = fx.defName;
             ctrl = ctrls[fxName];
 
-            #mute, leftRight, idxs, data = ~readData.value(nfxs, nctrls);
+            #mute, left, right, idxs, data, newData = ~readData.value(nfxs, nctrls);
 
             // Toggle mute
-            if (mute - oldMute > 0, {
+            if (mute, {
                 if (muted.isNil, {
                     muted = Synth.tail(grp, \mute, [\inbus, [0, 0]]);
                 }, {
@@ -171,15 +167,13 @@ Server.default.waitForBoot({
             });
 
             // Change fx
-            (leftRight - oldLeftRight).do {|dif, idx|
-                if (dif > 0, {
-                    fx = cycleActive.value(fxName, idx.linlin(0, 1, -1, 1));
-                });
+            if (left || right) {
+                fx = cycleActive.value(fxName, if (left, { -1 }, { 1 }));
             };
 
             // Update current index
-            (idxs - oldIdxs).do {|dif, idx|
-                if (dif > 0, {
+            idxs.do {|pressed, idx|
+                if (pressed, {
                     // Lock old current index
                     locked[curIdx] = true;
                     curIdx = idx + 1;
@@ -187,9 +181,7 @@ Server.default.waitForBoot({
             };
 
             // Unlock current index if any value changed
-            if ((data - oldData).abs.any(_ > 1), {
-                locked[curIdx] = false;
-            });
+            if (newData, { locked[curIdx] = false; });
 
             // Map raw values to correct range for current fx
             vals = ctrl.collect {|ctrlSpec, idx|
@@ -197,17 +189,10 @@ Server.default.waitForBoot({
             }.flat;
 
             // Update if not locked
-            if (locked[curIdx].not, {
-                fx.set(*vals);
-            });
+            if (locked[curIdx].not, { fx.set(*vals); });
 
             // Log new values
             debugLog.value(curIdx, muted, active, ctrls, locked);
-
-            oldMute = mute;
-            oldLeftRight = leftRight;
-            oldIdxs = idxs;
-            oldData = data;
 
             (~dataDelay / 1000).wait;
         };
