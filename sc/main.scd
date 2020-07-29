@@ -158,11 +158,11 @@ Server.default.waitForBoot({
 
             // Toggle mute
             if (mute, {
-                if (muted.isNil, {
-                    muted = Synth.tail(grp, \mute, [\inbus, [0, 0]]);
+                muted = if (muted.isNil, {
+                    Synth.tail(grp, \mute, [\inbus, [0, 0]]);
                 }, {
                     muted.free;
-                    muted = nil;
+                    nil;
                 });
             });
 
