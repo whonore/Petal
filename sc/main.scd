@@ -7,27 +7,24 @@
 */
 
 (
+~debug = true;
+
 Server.default.quit;
 Server.default.waitForBoot({
-    var debug = true;
-    var portName, port, syncVal, delay;
     var minFreq, maxFreq;
+    var port;
     var nfxs, nctrls, grp, fxs, ctrls;
     var active, avail, locked, curIdx;
-    var readData, cycleActive, debugLog, main;
+    var cycleActive, debugLog, main;
 
     // Imports
     "common.scd".loadRelative(true);
+    "data.scd".loadRelative(true);
     #ctrls, fxs = "fxs/loadFxs.scd".loadRelative(true)[0];
-    ~serv.sync;
 
-    // Serial Init
-    portName = if (debug.not, { "/dev/ttyACM0" }, { "../ino/tmppty".resolveRelative });
-    syncVal = 13; // Special value to mark start of send
-    delay = 1; // msec to wait between sending data
-    port = SerialPort(
-        portName, 9600, crtscts: true
-    ).doneAction_({
+    // Initialize serial port
+    port = ~initData.value();
+    port.doneAction = {
         "Cleaning up".postln;
         {
             main.stop;
@@ -40,8 +37,9 @@ Server.default.waitForBoot({
             ~serv.sync;
             ~serv.quit;
             ~common_loaded = nil;
-        }.fork;
-    });
+            ~data_loaded = nil;
+        }.fork
+    };
     ~serv.sync;
 
     // SynthDef Init
@@ -95,26 +93,6 @@ Server.default.waitForBoot({
     avail = true ! fxs.size;
     locked = false ! active.size;
 
-    // Read messages from Arduino
-    readData = {
-        var mute, leftRight, idxs, ctrl;
-
-        // Wait until syncVal written
-        while ({port.read != syncVal}, {});
-
-        mute = port.read;
-        leftRight = { port.read } ! 2;
-        idxs = { port.read } ! nfxs;
-
-        ctrl = Array.fill(nctrls, {
-            var lo = port.read;
-            var hi = port.read;
-            (hi << 8) | lo;
-        }).linlin(0, 1023, 0, 1);
-
-        [mute, leftRight, idxs, ctrl];
-    };
-
     // Change the active fx to the next unused one
     cycleActive = {|fxName, step|
         var availIdx, nextAvailIdx, nextAvail;
@@ -148,17 +126,19 @@ Server.default.waitForBoot({
     };
 
     debugLog = {|curIdx, muted, active, ctrls, locked|
-        postf("CurIdx: %\nActive: %\nMuted: %\n", curIdx, active[curIdx].defName, muted.notNil);
-        active[1..].do {|fx, idx|
-            postf("% %controls: [ ", fx.defName, if (locked[idx + 1], { "(locked) " }, { "" }));
-            ctrls[fx.defName].do {|ctrl|
-                fx.get(ctrl.key, {|val|
-                    postf("%=% ", ctrl.key, val);
-                });
+        if (~debug, {
+            postf("CurIdx: %\nActive: %\nMuted: %\n", curIdx, active[curIdx].defName, muted.notNil);
+            active[1..].do {|fx, idx|
+                postf("% %controls: [ ", fx.defName, if (locked[idx + 1], { "(locked) " }, { "" }));
+                ctrls[fx.defName].do {|ctrl|
+                    fx.get(ctrl.key, {|val|
+                        postf("%=% ", ctrl.key, val);
+                    });
+                };
+                ~serv.sync;
+                "]".postln;
             };
-            ~serv.sync;
-            "]".postln;
-        };
+        });
     };
 
     // Main event loop
@@ -178,7 +158,7 @@ Server.default.waitForBoot({
             fxName = fx.defName;
             ctrl = ctrls[fxName];
 
-            #mute, leftRight, idxs, data = readData.value();
+            #mute, leftRight, idxs, data = ~readData.value(nfxs, nctrls);
 
             // Toggle mute
             if (mute - oldMute > 0, {
@@ -229,7 +209,7 @@ Server.default.waitForBoot({
             oldIdxs = idxs;
             oldData = data;
 
-            (delay / 1000).wait;
+            (~dataDelay / 1000).wait;
         };
     };
 
