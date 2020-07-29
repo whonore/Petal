@@ -2,6 +2,8 @@
 ** OneBox
 ** wah.scd
 ** Wolf Honore
+**
+** An auto-wah using a resonant low-pass filter with a modulating cutoff.
 */
 
 (
@@ -9,7 +11,6 @@ var fxName = \wah;
 
 "../../common.scd".loadRelative(true);
 
-// Use a resonant low-pass filter with a modulating cutoff to create an auto-wah.
 ~makeFx.value(fxName, {|in, speed=2, q=2|
     // speed [0, 20]: LFO rate
     // q [1, 5]: Q of resonant filter

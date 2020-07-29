@@ -2,6 +2,8 @@
 ** OneBox
 ** tremolo.scd
 ** Wolf Honore
+**
+** Fluctuate maximum amplitude between [1 - depth, 1].
 */
 
 (
@@ -9,7 +11,6 @@ var fxName = \tremolo;
 
 "../../common.scd".loadRelative(true);
 
-// Fluctuate maximum amplitude between [1 - depth, 1].
 ~makeFx.value(fxName, {|in, speed=7, depth=1|
     // speed [1, 10]: LFO rate
     // depth [0, 1]: LFO multiplier

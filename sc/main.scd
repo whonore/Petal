@@ -237,3 +237,6 @@ Server.default.waitForBoot({
     main.play;
 });
 );
+
+// For debugging
+SerialPort.closeAll;

@@ -2,6 +2,8 @@
 ** OneBox
 ** reverse.scd
 ** Wolf Honore
+**
+** Buffer and reverse incoming signal.
 */
 
 (
@@ -9,7 +11,6 @@ var fxName = \reverse;
 
 "../../common.scd".loadRelative(true);
 
-// Buffers and reverses incoming signal.
 ~makeFx.value(fxName, {|in|
     var dur, buf, brate, bframe;
     var write, read1, read2;

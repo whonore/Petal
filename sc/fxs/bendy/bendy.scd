@@ -2,6 +2,9 @@
 ** OneBox
 ** bendy.scd
 ** Wolf Honore
+**
+** Bend and wobble the pitch. Wobble is basically vibrato and bend
+** exponentially increases the pitch.
 */
 
 (
@@ -9,8 +12,6 @@ var fxName = \bendy;
 
 "../../common.scd".loadRelative(true);
 
-// Bends and wobbles the pitch. Wobble is basically vibrato and bend exponentially
-// increases the pitch.
 ~makeFx.value(fxName, {|in, wobbleRate=3, bendDur=1, wobble=0.05, bend=2|
     // wobbleRate [0.01, 10]: LFO speed
     // bendDur [0.1, 5]: Duration of bend
@@ -18,8 +19,8 @@ var fxName = \bendy;
     // bend [0, 10]: Magnitude of bend
     var chain, wobbled, bent, bendEnv, ampEnv;
 
-    // Envelopes for the bend amount and bend amplitude. Amplitude decreases as bend
-    // increases.
+    // Envelopes for the bend amount and bend amplitude. Amplitude decreases as
+    // bend increases.
     bendEnv = EnvGen.ar(Env([1, 1 + bend, 1], [bendDur - 0.05, 0.05], [\exp, \exp]).circle, doneAction: 2);
     ampEnv = EnvGen.ar(Env([0, 1, 0], [0.05, bendDur - 0.05], [0, \sin]).circle, doneAction: 2);
 

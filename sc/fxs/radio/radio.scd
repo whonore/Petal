@@ -2,6 +2,9 @@
 ** OneBox
 ** radio.scd
 ** Wolf Honore
+**
+** Simulate an old radio by downsampling, filtering, compressing, and adding
+** noise.
 */
 
 (
@@ -9,7 +12,6 @@ var fxName = \radio;
 
 "../../common.scd".loadRelative(true);
 
-// Simulates an old radio by downsampling, filtering, compressing, and adding noise.
 ~makeFx.value(fxName, {|in, noiseAmp=0.05, noiseRate=100, minFreq=700, maxFreq=2000|
     // noiseAmp [0, 0.4]: Amplitude of pops
     // noiseRate [50, 300]: Rate of pops

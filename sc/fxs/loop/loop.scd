@@ -2,6 +2,8 @@
 ** OneBox
 ** loop.scd
 ** Wolf Honore
+**
+** Amplitude triggered looper with adjustable playback rate.
 */
 
 (
@@ -9,7 +11,6 @@ var fxName = \loop;
 
 "../../common.scd".loadRelative(true);
 
-// Amplitude triggered looper with adjustable playback rate.
 ~makeFx.value(fxName, {|in, mix=0.3, dur=0.5, thresh=0.3, rate=1|
     // mix [0, 1]: Dry/wet balance
     // dur [0, 3]: Duration of loop

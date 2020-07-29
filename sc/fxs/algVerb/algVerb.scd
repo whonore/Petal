@@ -2,6 +2,8 @@
 ** OneBox
 ** algVerb.scd
 ** Wolf Honore
+**
+** Simulate reverb using comb and allpass filters.
 */
 
 (
@@ -9,7 +11,6 @@ var fxName = \algVerb;
 
 "../../common.scd".loadRelative(true);
 
-// Simulate reverb using comb and allpass filters.
 ~makeFx.value(fxName, {|in, mix=0.33, size=0.5|
     // mix [0, 1]: Dry/wet balance
     // size [0, 1]: Size of the room

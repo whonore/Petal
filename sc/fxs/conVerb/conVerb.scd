@@ -2,6 +2,8 @@
 ** OneBox
 ** conVerb.scd
 ** Wolf Honore
+**
+** Convolution reverb using IR from a church
 */
 
 (
@@ -28,7 +30,6 @@ var fxName = \conVerb;
     buf.free;
     ~serv.sync;
 
-    // Convolution reverb using IR from a church
     ~makeFx.value(\conVerb, {|in|
         PartConv.ar(in, 2048, irChurch) / 4;
     });

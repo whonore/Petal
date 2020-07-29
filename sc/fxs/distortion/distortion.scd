@@ -2,6 +2,12 @@
 ** OneBox
 ** distortion.scd
 ** Wolf Honore
+**
+** Distortion algorithm that models guitar distortion pedals.
+** Credits: Originally implemented by Scott Petersen.
+** Based on the paper "Simplified, Physically-informed Models of Distortion and
+** Overdrive Guitar Effects Pedals" by Yeh, Abel, and Smith (CCRMA)
+** Presented at the 10h in. conference on digital audio effects, Sept 10-15 2007.
 */
 
 (
@@ -9,11 +15,6 @@ var fxName = \distortion;
 
 "../../common.scd".loadRelative(true);
 
-// Distortion algorithm that models guitar distortion pedals.
-// Credits: Originally implemented by Scott Petersen.
-// Based on the paper "Simplified, Physically-informed Models of Distortion and
-// Overdrive Guitar Effects Pedals" by Yeh, Abel, and Smith (CCRMA)
-// Presented at the 10h in. conference on digital audio effects, Sept 10-15 2007.
 ~makeFx.value(fxName, {|in, gain=3, dist=2.5, tone=0.3|
     // gain [1, 10]: Amplitude multiplier before distortion
     // dist [1, 10]: Amount of distortion

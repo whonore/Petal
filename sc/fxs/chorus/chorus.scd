@@ -2,6 +2,9 @@
 ** OneBox
 ** chorus.scd
 ** Wolf Honore
+**
+** Create slightly out-of-phase copies of the signal by delaying by a
+** modulating amount.
 */
 
 (
@@ -9,7 +12,6 @@ var fxName = \chorus;
 
 "../../common.scd".loadRelative(true);
 
-// Create slightly out of phase copies of the signal by delaying by a modulating amount.
 ~makeFx.value(fxName, {|in, speed=0.05, depth=0.05|
     // speed [0, 0.15]: LFO rate
     // depth [0, 0.2]: LFO multiplier

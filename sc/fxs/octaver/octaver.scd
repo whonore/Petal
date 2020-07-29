@@ -2,6 +2,10 @@
 ** OneBox
 ** octaver.scd
 ** Wolf Honore
+**
+** Octaver that uses RM to create a signal with the fundamental halved and
+** containing only the odd partials. Mix in the original signal to recover the
+** missing partials.
 */
 
 (
@@ -9,8 +13,6 @@ var fxName = \octaver;
 
 "../../common.scd".loadRelative(true);
 
-// Use RM to create a signal with the fundamental halved and containing only the odd partials.
-// Mix in the original signal to recover the missing partials.
 ~makeFx.value(fxName, {|in|
     var freq;
 
