@@ -132,7 +132,7 @@ Server.default.waitForBoot({
                 postf("% %controls: [ ", fx.defName, if (locked[idx + 1], { "(locked) " }, { "" }));
                 ctrls[fx.defName].do {|ctrl|
                     fx.get(ctrl.key, {|val|
-                        postf("%=% ", ctrl.key, val);
+                        postf("%=% ", ctrl.key, val.round(0.01));
                     });
                 };
                 ~serv.sync;
@@ -148,6 +148,7 @@ Server.default.waitForBoot({
         loop {
             var fx, fxName;
             var ctrl, data;
+            var changed = false;
 
             fx = active[curIdx];
             fxName = fx.defName;
@@ -162,11 +163,13 @@ Server.default.waitForBoot({
                     muted.free;
                     nil;
                 });
+                changed = true;
             });
 
             // Change fx
             if (data.left || data.right) {
                 fx = cycleActive.value(fxName, if (data.left, { -1 }, { 1 }));
+                changed = true;
             };
 
             // Update current index
@@ -175,6 +178,7 @@ Server.default.waitForBoot({
                     // Lock old current index
                     locked[curIdx] = true;
                     curIdx = idx;
+                    changed = true;
                 });
             };
 
@@ -188,10 +192,13 @@ Server.default.waitForBoot({
                     [ctrlSpec.key, ctrlSpec.value.map(data.ctrls[idx])];
                 }.flat;
                 fx.set(*vals);
+                changed = true;
             });
 
             // Log new values
-            debugLog.value(curIdx, muted, active, ctrls, locked);
+            if (changed, {
+                debugLog.value(curIdx, muted, active, ctrls, locked);
+            });
         };
     };
 

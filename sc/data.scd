@@ -21,22 +21,20 @@
     ~initData = {
         portName = if (~debug.not, { "/dev/ttyS0" }, { "../ino/tmppty".resolveRelative });
         portName = "/dev/ttyS0";
-        syncVal = $\n.ascii; // Special value to mark start of send
+        syncVal = 128; // Special value to mark start of send
         port = SerialPort(portName, 19200, crtscts: true);
         port;
     };
 
     parseData = {|raw, nctrls|
-        var encoders, btns, data;
-        var parsed = raw.split($ );
-        var ctrls = parsed.keep(nctrls).collect {|x| x.asInteger };
-        #encoders, btns = parsed.drop(nctrls).collect {|x| x.findAll("1") ? [] };
-        data = (
-            mute: btns.includes(muteBtn),
-            left: encoders.includes(leftBtn),
-            right: encoders.includes(rightBtn),
+        var ctrls = raw.keep(nctrls);
+        var btns = raw.drop(nctrls).collect {|x| x.indicesOfEqual(1) ? [] };
+        var data = (
+            mute: btns.includes(nctrls + muteBtn),
+            left: btns.includes(leftBtn),
+            right: btns.includes(rightBtn),
             idxs: btns.reject {|x| x == 0 },
-            ctrls: if (ctrls != oldCtrls, { ctrls }, { nil });
+            ctrls: if (ctrls != oldCtrls, { ctrls.linlin(0, 127, 0, 1) }, { nil });
         );
 
         oldCtrls = ctrls;
@@ -47,12 +45,12 @@
     ~readData = {|nfxs, nctrls|
         var byte, data;
         var mute, left, right, idxs, ctrls;
-        data = "";
+        data = List[];
 
         // Wait until syncVal written
         while ({ port.read != syncVal }, {});
         while ({ byte = port.read; byte != syncVal }, {
-            data = data ++ byte.asAscii;
+            data.add(byte);
         });
         parseData.value(data, nctrls);
     };
