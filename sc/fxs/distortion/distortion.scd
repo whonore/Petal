@@ -1,5 +1,5 @@
 /*
-** OneBox
+** Petal
 ** distortion.scd
 ** Wolf Honore
 **

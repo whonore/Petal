@@ -1,5 +1,5 @@
 /*
-** OneBox
+** Petal
 ** chorus.scd
 ** Wolf Honore
 **

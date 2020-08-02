@@ -1,5 +1,5 @@
 /*
-** OneBox
+** Petal
 ** reverse.scd
 ** Wolf Honore
 **

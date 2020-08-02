@@ -1,5 +1,5 @@
 /*
-** OneBox
+** Petal
 ** tremolo.scd
 ** Wolf Honore
 **

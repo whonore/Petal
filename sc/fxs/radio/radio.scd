@@ -1,5 +1,5 @@
 /*
-** OneBox
+** Petal
 ** radio.scd
 ** Wolf Honore
 **

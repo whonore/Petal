@@ -1,5 +1,5 @@
 /*
- * OneBox
+ * Petal
  * readdata.ino
  * Wolf Honore
  *

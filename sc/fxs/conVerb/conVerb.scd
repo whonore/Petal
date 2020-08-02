@@ -1,5 +1,5 @@
 /*
-** OneBox
+** Petal
 ** conVerb.scd
 ** Wolf Honore
 **

@@ -1,5 +1,5 @@
 /*
-** OneBox
+** Petal
 ** freeVerb.scd
 ** Wolf Honore
 **

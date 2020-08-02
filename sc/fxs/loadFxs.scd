@@ -1,5 +1,5 @@
 /*
-** OneBox
+** Petal
 ** loadFxs.scd
 ** Wolf Honore
 **
