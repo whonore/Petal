@@ -147,17 +147,15 @@ Server.default.waitForBoot({
 
         loop {
             var fx, fxName;
-            var mute, left, right, idxs;
-            var ctrl, data, newData, vals;
+            var ctrl, data;
 
             fx = active[curIdx];
             fxName = fx.defName;
             ctrl = ctrls[fxName];
-
-            #mute, left, right, idxs, data, newData = ~readData.value(nfxs, nctrls);
+            data = ~readData.value(nfxs, nctrls);
 
             // Toggle mute
-            if (mute, {
+            if (data.mute, {
                 muted = if (muted.isNil, {
                     Synth.tail(grp, \mute, [\inbus, [0, 0]]);
                 }, {
@@ -167,34 +165,33 @@ Server.default.waitForBoot({
             });
 
             // Change fx
-            if (left || right) {
-                fx = cycleActive.value(fxName, if (left, { -1 }, { 1 }));
+            if (data.left || data.right) {
+                fx = cycleActive.value(fxName, if (data.left, { -1 }, { 1 }));
             };
 
             // Update current index
-            idxs.do {|pressed, idx|
-                if (pressed, {
+            data.idxs.do {|idx|
+                if (idx != curIdx, {
                     // Lock old current index
                     locked[curIdx] = true;
-                    curIdx = idx + 1;
+                    curIdx = idx;
                 });
             };
 
             // Unlock current index if any value changed
-            if (newData, { locked[curIdx] = false; });
-
-            // Map raw values to correct range for current fx
-            vals = ctrl.collect {|ctrlSpec, idx|
-                [ctrlSpec.key, ctrlSpec.value.map(data[idx])];
-            }.flat;
+            if (data.ctrls.notNil, { locked[curIdx] = false; });
 
             // Update if not locked
-            if (locked[curIdx].not, { fx.set(*vals); });
+            if (locked[curIdx].not && data.ctrls.notNil, {
+                // Map raw values to correct range for current fx
+                var vals = ctrl.collect {|ctrlSpec, idx|
+                    [ctrlSpec.key, ctrlSpec.value.map(data.ctrls[idx])];
+                }.flat;
+                fx.set(*vals);
+            });
 
             // Log new values
             debugLog.value(curIdx, muted, active, ctrls, locked);
-
-            (~dataDelay / 1000).wait;
         };
     };
 
