@@ -6,7 +6,7 @@
  * Read data from sensors and send to SuperCollider over serial.
  */
 
-const DELAY = 1; // msec to wait between sending data
+const uint32_t DELAY = 1; // msec to wait between sending data
 const byte ENCODER_MAX = 128;
 const byte SYNC = ENCODER_MAX; // Special value to mark start of send
 
@@ -28,7 +28,7 @@ struct encoder_t {
     .pos = 10, .Alast = LOW, \
 }
 
-const struct encoder_t encoders[] = {
+struct encoder_t encoders[] = {
     ENCODER(22, 23, 24),
     ENCODER(26, 27, 28),
     ENCODER(30, 31, 32),
@@ -37,7 +37,7 @@ const struct encoder_t encoders[] = {
 };
 #define NENCODERS (sizeof(encoders) / sizeof(encoders[0]))
 
-const struct button_t buttons[] = {
+struct button_t buttons[] = {
     BUTTON(25),
     BUTTON(29),
     BUTTON(33),
@@ -56,7 +56,7 @@ void setup() {
         pinMode(buttons[i].pin, INPUT);
     }
 
-    Serial.begin (19200);
+    Serial.begin(19200);
     while (!Serial) {}
 }
 
@@ -75,7 +75,9 @@ void loop() {
     for (byte i = 0; i < NENCODERS; i++) {
         Serial.write(encoders[i].pos - 1); // Shift to [0, ENCODER_MAX - 1]
     }
-    Serial.write(pressed, NENCODERS + NBUTTONS);
+    for (byte i = 0; i < NENCODERS + NBUTTONS; i++) {
+        Serial.write(pressed[i]);
+    }
 
     delay(DELAY);
 }
