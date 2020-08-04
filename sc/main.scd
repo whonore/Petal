@@ -14,8 +14,8 @@ Server.default.waitForBoot({
     var minFreq, maxFreq;
     var port;
     var nfxs, nctrls, grp, fxs, ctrls;
-    var active, avail, locked, curIdx;
-    var cycleActive, debugLog, main;
+    var active, avail, locked;
+    var soundSrc, cycleActive, debugLog, main;
 
     // Imports
     "common.scd".loadRelative(true);
@@ -42,6 +42,15 @@ Server.default.waitForBoot({
     };
     ~serv.sync;
 
+    soundSrc = {|bus|
+        if (~debug, {
+            SinOsc.ar(220 + Rand(-20, 20), mul: Rand(0.9, 1.1));
+           // + 0 * Saw.ar(50, mul: 0 * 0.1 * Line.kr(-1, 1));
+        }, {
+            SoundIn.ar(bus)
+        });
+    };
+
     // SynthDef Init
     minFreq = 20;
     maxFreq = 1000;
@@ -50,7 +59,7 @@ Server.default.waitForBoot({
         var in, freq, amp;
 
         // Scale amplitude
-        in = volume * SoundIn.ar(inbus);
+        in = volume * soundSrc.value(inbus);
 
         // Track pitch and amplitude
         freq = Pitch.kr(in, minFreq: minFreq, maxFreq: maxFreq).flop[0];
@@ -64,7 +73,7 @@ Server.default.waitForBoot({
 
     // Mute all fxs and play only the dry signal
     SynthDef(\mute, {|inbus=#[0, 1], outbus=0, volume=1|
-        ReplaceOut.ar(outbus, volume * SoundIn.ar(inbus));
+        ReplaceOut.ar(outbus, volume * soundSrc.value(inbus));
     }).add;
 
     // Pass the signal untouched
@@ -75,7 +84,6 @@ Server.default.waitForBoot({
     // Synth Init
     nfxs = 4; // Number of active fxs
     nctrls = 5; // Max number of controls
-    curIdx = 1;
     grp = Group(~serv);
     ~serv.sync;
 
@@ -88,13 +96,10 @@ Server.default.waitForBoot({
 
     // Initalize all fxs as dummies and dry at the head
     active = { Synth.tail(grp, \dummy); } ! nfxs;
-    active = active.insert(0, Synth.head(grp, \dry, [\inbus, [0, 0]]));
-
-    avail = true ! fxs.size;
-    locked = false ! active.size;
+    active = active.add(Synth.head(grp, \dry, [\inbus, [0, 0]]));
 
     // Change the active fx to the next unused one
-    cycleActive = {|fxName, step|
+    cycleActive = {|fxName, curIdx, avail, step|
         var availIdx, nextAvailIdx, nextAvail;
 
         // Find idx of fx with fxName
@@ -128,8 +133,8 @@ Server.default.waitForBoot({
     debugLog = {|curIdx, muted, active, ctrls, locked|
         if (~debug, {
             postf("CurIdx: %\nActive: %\nMuted: %\n", curIdx, active[curIdx].defName, muted.notNil);
-            active[1..].do {|fx, idx|
-                postf("% %controls: [ ", fx.defName, if (locked[idx + 1], { "(locked) " }, { "" }));
+            active.drop(-1).do {|fx, idx|
+                postf("% %controls: [ ", fx.defName, if (locked[idx], { "(locked) " }, { "" }));
                 ctrls[fx.defName].do {|ctrl|
                     fx.get(ctrl.key, {|val|
                         postf("%=% ", ctrl.key, val.round(0.01));
@@ -144,6 +149,9 @@ Server.default.waitForBoot({
     // Main event loop
     main = Routine {
         var muted = nil;
+        var curIdx = 0;
+        var avail = true ! fxs.size;
+        var locked = false ! nfxs;
 
         loop {
             var fx, fxName;
@@ -168,7 +176,9 @@ Server.default.waitForBoot({
 
             // Change fx
             if (data.left || data.right) {
-                fx = cycleActive.value(fxName, if (data.left, { -1 }, { 1 }));
+                fx = cycleActive.value(
+                    fxName, curIdx, avail, if (data.left, { -1 }, { 1 })
+                );
                 changed = true;
             };
 

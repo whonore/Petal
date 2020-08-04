@@ -11,7 +11,6 @@
     var portName, port, syncVal;
     var oldCtrls;
     var parseData;
-    var muteBtn = 0;
     var leftBtn = 0;
     var rightBtn = 1;
 
@@ -26,14 +25,16 @@
         port;
     };
 
-    parseData = {|raw, nctrls|
+    parseData = {|raw, nfxs, nctrls|
         var ctrls = raw.keep(nctrls);
-        var btns = raw.drop(nctrls).collect {|x| x.indicesOfEqual(1) ? [] };
+        var encoders = raw.drop(nctrls).keep(nctrls).indicesOfEqual(1) ? [];
+        var btns = raw.drop(2 * nctrls).keep(nfxs).indicesOfEqual(1) ? [];
+        var mute = raw.drop(2 * nctrls + nfxs)[0] == 1;
         var data = (
-            mute: btns.includes(nctrls + muteBtn),
-            left: btns.includes(leftBtn),
-            right: btns.includes(rightBtn),
-            idxs: btns.reject {|x| x == 0 },
+            mute: mute,
+            left: encoders.includes(leftBtn),
+            right: encoders.includes(rightBtn),
+            idxs: btns,
             ctrls: if (ctrls != oldCtrls, { ctrls.linlin(0, 127, 0, 1) }, { nil });
         );
 
@@ -52,7 +53,7 @@
         while ({ byte = port.read; byte != syncVal }, {
             data.add(byte);
         });
-        parseData.value(data, nctrls);
+        parseData.value(data, nfxs, nctrls);
     };
 
     ~data_loaded = true;
