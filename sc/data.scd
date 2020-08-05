@@ -13,6 +13,7 @@
     var parseData;
     var leftBtn = 0;
     var rightBtn = 1;
+    var synced = false;
 
     "common.scd".loadRelative(true);
 
@@ -49,7 +50,8 @@
         data = List[];
 
         // Wait until syncVal written
-        while ({ port.read != syncVal }, {});
+        while ({ synced.not.and { port.read != syncVal }}, {});
+        synced = true;
         while ({ byte = port.read; byte != syncVal }, {
             data.add(byte);
         });
