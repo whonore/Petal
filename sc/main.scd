@@ -44,7 +44,7 @@ Server.default.waitForBoot({
 
     soundSrc = {|bus|
         if (~debug, {
-            SinOsc.ar(220 + Rand(-20, 20), mul: Rand(0.9, 1.1));
+            SinOsc.ar(220 + 220 * LFTri.kr(TRand.kr(0.1, 0.5, Dust.kr(1))).unipolar)
         }, {
             SoundIn.ar(bus)
         });

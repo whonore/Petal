@@ -27,7 +27,7 @@
     };
 
     parseData = {|raw, nfxs, nctrls|
-        var ctrls = raw.keep(nctrls);
+        var ctrls = raw.keep(nctrls).linlin(0, 127, 0, 1);
         var encoders = raw.drop(nctrls).keep(nctrls).indicesOfEqual(1) ? [];
         var btns = raw.drop(2 * nctrls).keep(nfxs).indicesOfEqual(1) ? [];
         var mute = raw.drop(2 * nctrls + nfxs)[0] == 1;
@@ -36,7 +36,7 @@
             left: encoders.includes(leftBtn),
             right: encoders.includes(rightBtn),
             idxs: btns,
-            ctrls: if (ctrls != oldCtrls, { ctrls.linlin(0, 127, 0, 1) }, { nil });
+            ctrls: if (ctrls != oldCtrls, { ctrls }, { nil });
         );
 
         oldCtrls = ctrls;
