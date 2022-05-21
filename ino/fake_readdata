@@ -5,6 +5,7 @@
 #
 # Fake data from an Arduino for testing. Can either control with 'read' arg or
 # use random data with 'rand' arg.
+# TODO: Fix data order
 
 # Create a pseudoterminal with socat named tmppty
 DIR="$(cd "$(dirname "$0")" >/dev/null 2>&1 && pwd)"

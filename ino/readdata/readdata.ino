@@ -38,10 +38,12 @@ struct encoder_t encoders[] = {
 #define NENCODERS (sizeof(encoders) / sizeof(encoders[0]))
 
 struct button_t buttons[] = {
-    BUTTON(37),
-    BUTTON(33),
-    BUTTON(29),
-    BUTTON(25),
+    BUTTON(37),  // Idx1
+    BUTTON(33),  // Idx2
+    BUTTON(29),  // Idx3
+    BUTTON(25),  // Idx4
+    BUTTON(42),  // Left
+    BUTTON(43),  // Right
     BUTTON(41)   // Stomp
 };
 #define NBUTTONS (sizeof(buttons) / sizeof(buttons[0]))

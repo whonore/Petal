@@ -8,11 +8,13 @@
 
 // Only execute once
 ~data_loaded ?? {
-    var portName, port, syncVal;
+    var portName, port;
     var oldCtrls;
     var parseData;
     var leftBtn = 0;
     var rightBtn = 1;
+    var muteBtn = 2;
+    var syncVal = 128; // Special value to mark start of send
     var synced = false;
 
     "common.scd".loadRelative(true);
@@ -20,8 +22,7 @@
     // Serial Init
     ~initData = {
         portName = if (~debug.not, { "/dev/ttyS0" }, { "../ino/tmppty".resolveRelative });
-        portName = "/dev/ttyS0";
-        syncVal = 128; // Special value to mark start of send
+        portName = "/dev/ttyS0"; // TODO: remove
         port = SerialPort(portName, 19200, crtscts: true);
         port;
     };
@@ -30,11 +31,11 @@
         var ctrls = raw.keep(nctrls).linlin(0, 127, 0, 1);
         var encoders = raw.drop(nctrls).keep(nctrls).indicesOfEqual(1) ? [];
         var btns = raw.drop(2 * nctrls).keep(nfxs).indicesOfEqual(1) ? [];
-        var mute = raw.drop(2 * nctrls + nfxs)[0] == 1;
+        var leftRightMute = raw.drop((2 * nctrls) + nfxs).indicesOfEqual(1) ? [];
         var data = (
-            mute: mute,
-            left: encoders.includes(leftBtn),
-            right: encoders.includes(rightBtn),
+            mute: leftRightMute.includes(muteBtn),
+            left: leftRightMute.includes(leftBtn),
+            right: leftRightMute.includes(rightBtn),
             idxs: btns,
             ctrls: if (ctrls != oldCtrls, { ctrls }, { nil });
         );
@@ -46,7 +47,6 @@
     // Read messages from Arduino
     ~readData = {|nfxs, nctrls|
         var byte, data;
-        var mute, left, right, idxs, ctrls;
         data = List[];
 
         // Wait until syncVal written
