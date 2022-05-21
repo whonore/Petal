@@ -71,6 +71,8 @@ void loop() {
         pressed[NENCODERS + i] = wasPressed(&buttons[i]);
     }
 
+    // TODO: Write an entire packet as a single buffer
+    // TODO: Use a bitarray for pressed
     Serial.write(SYNC);
     for (byte i = 0; i < NENCODERS; i++) {
         Serial.write(encoders[i].pos - 1); // Shift to [0, ENCODER_MAX - 1]
