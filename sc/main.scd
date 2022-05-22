@@ -162,7 +162,9 @@ Server.default.waitForBoot({
     updateDisplay = {|curIdx, muted, active, ctrls, locked|
         var fx = active[curIdx];
         {
-            labels.muted.string = "Bypass: %".format(muted.notNil.if({ "On" }, { "Off" }));
+            labels.muted.string = "Bypass All: %".format(
+                muted.notNil.if({ "On" }, { "Off" })
+            );
             labels.active.string = "Focused Effect: % (slot %)".format(
                 fx.defName,
                 curIdx

@@ -6,8 +6,17 @@
  * Read data from sensors and send to SuperCollider over serial.
  */
 
+// Number of bytes needed to fit nbits bits
+#define NBYTES(nbits) ((nbits) / 8) + ((nbits) % 8 != 0)
+
 const uint32_t DELAY = 1; // msec to wait between sending data
-const byte SYNC = 128; // Special value to mark start of send
+const byte SYNC = 255; // Special value to mark start of send
+
+enum Dir {
+    NONE,
+    LEFT,
+    RIGHT,
+};
 
 struct button_t {
     const byte pin;
@@ -46,6 +55,9 @@ struct button_t buttons[] = {
 };
 #define NBUTTONS (sizeof(buttons) / sizeof(buttons[0]))
 
+//                     Sync       Encoder Offs    Encoder Btns Btns
+const byte PKT_BYTES = 1 + NBYTES(2 * NENCODERS + NENCODERS +  NBUTTONS);
+
 void setup() {
     for (byte i = 0; i < NENCODERS; i++) {
         pinMode(encoders[i].A, INPUT);
@@ -61,8 +73,9 @@ void setup() {
 }
 
 void loop() {
-    int8_t offset[NENCODERS];
+    enum Dir offset[NENCODERS];
     bool pressed[NENCODERS + NBUTTONS];
+    byte pkt[PKT_BYTES];
 
     for (byte i = 0; i < NENCODERS; i++) {
         offset[i] = readEncoder(&encoders[i]);
@@ -72,24 +85,42 @@ void loop() {
         pressed[NENCODERS + i] = wasPressed(&buttons[i]);
     }
 
-    // TODO: Write an entire packet as a single buffer
-    // TODO: Use a bitarray for pressed
-    Serial.write(SYNC);
-    for (byte i = 0; i < NENCODERS; i++) {
-        Serial.write(offset[i]);
+    memset(pkt, 0, PKT_BYTES);
+    pkt[0] = SYNC;
+    byte bit_off = 8;
+    for (byte i = 0; i < NENCODERS; i++, bit_off += 2) {
+        byte idx = bit_off / 8;
+        byte bit_idx = bit_off % 8;
+        switch (offset[i]) {
+        case NONE:
+            bitWrite(pkt[idx], bit_idx, 0);
+            bitWrite(pkt[idx], bit_idx + 1, 0);
+            break;
+        case LEFT:
+            bitWrite(pkt[idx], bit_idx, 0);
+            bitWrite(pkt[idx], bit_idx + 1, 1);
+            break;
+        case RIGHT:
+            bitWrite(pkt[idx], bit_idx, 1);
+            bitWrite(pkt[idx], bit_idx + 1, 0);
+            break;
+        }
     }
-    for (byte i = 0; i < NENCODERS + NBUTTONS; i++) {
-        Serial.write(pressed[i]);
+    for (byte i = 0; i < NENCODERS + NBUTTONS; i++, bit_off += 1) {
+        byte idx = bit_off / 8;
+        byte bit_idx = bit_off % 8;
+        bitWrite(pkt[idx], bit_idx, pressed[i]);
     }
+    Serial.write(pkt, PKT_BYTES);
 
     delay(DELAY);
 }
 
-static int8_t readEncoder(struct encoder_t *encoder) {
-    int8_t off = 0;
+static enum Dir readEncoder(struct encoder_t *encoder) {
+    enum Dir off = NONE;
     byte Acur = digitalRead(encoder->A);
     if ((encoder->Alast == HIGH) && (Acur == LOW)) {
-        off = (digitalRead(encoder->B) == HIGH ? 1 : -1);
+        off = (digitalRead(encoder->B) == HIGH ? RIGHT : LEFT);
     }
     encoder->Alast = Acur;
     return off;

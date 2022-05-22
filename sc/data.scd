@@ -13,7 +13,7 @@
     var leftBtn = 0;
     var rightBtn = 1;
     var muteBtn = 2;
-    var syncVal = 128; // Special value to mark start of send
+    var syncVal = 255; // Special value to mark start of send
     var synced = false;
 
     "common.scd".loadRelative(true);
@@ -27,20 +27,26 @@
     };
 
     parseData = {|raw, nfxs, nctrls|
-        // Convert to signed
-        var ctrlOffs = raw.keep(nctrls).collect {|x| (x > 127).if({ x - 256 }, { x }); };
-        var encoders = raw.drop(nctrls).keep(nctrls).indicesOfEqual(1) ? [];
-        var btns = raw.drop(2 * nctrls).keep(nfxs).indicesOfEqual(1) ? [];
-        var leftRightMute = raw.drop((2 * nctrls) + nfxs).indicesOfEqual(1) ? [];
-        var data = (
+        // Convert to bits
+        var bits = raw.collect {|x| 8.collect {|bit| x.bitTest(bit); }; }.flatten;
+        var ctrlOffs = bits.keep(2 * nctrls).clump(2).collect {|xs| xs.switch(
+            [false, false], { 0 }, // No change
+            [false, true], { -1 }, // Left
+            [true, false], { 1 },  // Right
+            { "Invalid ctrlOff %".format(xs).error; }
+        )};
+        var btnBits = bits.drop(2 * nctrls);
+        var encode_btns = btnBits.keep(nctrls).indicesOfEqual(true) ? []; // Unused
+        var btns = btnBits.drop(nctrls).keep(nfxs).indicesOfEqual(true) ? [];
+        var leftRightMute = btnBits.drop(nctrls + nfxs).indicesOfEqual(true) ? [];
+
+        (
             mute: leftRightMute.includes(muteBtn),
             left: leftRightMute.includes(leftBtn),
             right: leftRightMute.includes(rightBtn),
             idxs: btns,
             ctrlOffs: ctrlOffs,
         );
-
-        data;
     };
 
     // Read messages from Arduino
