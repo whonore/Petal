@@ -21,7 +21,7 @@
 
     // Serial Init
     ~initData = {
-        portName = if (~debug.not, { "/dev/ttyS0" }, { "../ino/tmppty".resolveRelative });
+        portName = ~debug.not.if({ "/dev/ttyS0" }, { "../ino/tmppty".resolveRelative });
         portName = "/dev/ttyS0"; // TODO: remove
         port = SerialPort(portName, 19200, crtscts: true);
         port;
@@ -37,7 +37,7 @@
             left: leftRightMute.includes(leftBtn),
             right: leftRightMute.includes(rightBtn),
             idxs: btns,
-            ctrls: if (ctrls != oldCtrls, { ctrls }, { nil });
+            ctrls: (ctrls != oldCtrls).if({ ctrls }, { nil });
         );
 
         oldCtrls = ctrls;

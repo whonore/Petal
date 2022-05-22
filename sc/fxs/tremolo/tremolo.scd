@@ -18,7 +18,7 @@ var fxName = \tremolo;
 });
 
 fxName -> [
-    \speed -> ControlSpec(1, 10, step: 0.1, default: 7),
-    \depth -> ControlSpec(0, 1, step: 0.05, default: 1)
+    \speed -> ControlSpec(1, 10, step: 0.1, default: 7, units: \hz),
+    \depth -> ControlSpec(0, 1, step: 0.05, default: 1, units: \pct)
 ];
 )

@@ -37,9 +37,9 @@ var fxName = \loop;
 });
 
 fxName -> [
-    \mix -> ControlSpec(0, 1, step: 0.01, default: 0.2),
-    \dur -> ControlSpec(0.1, 3, step: 0.01, default: 0.5),
-    \thresh -> ControlSpec(0, 1, step: 0.01, default: 0.4),
-    \rate -> ControlSpec(0.5, 2, step: 0.1, default: 1)
+    \mix -> ControlSpec(0, 1, step: 0.01, default: 0.2, units: \pct),
+    \dur -> ControlSpec(0.1, 3, step: 0.01, default: 0.5, units: \sec),
+    \thresh -> ControlSpec(0, 1, step: 0.01, default: 0.4, units: \pct),
+    \rate -> ControlSpec(0.5, 2, step: 0.1, default: 1, units: \mult)
 ];
 )

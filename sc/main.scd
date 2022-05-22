@@ -15,7 +15,8 @@ Server.default.waitForBoot({
     var port;
     var nfxs, nctrls, grp, fxs, ctrls;
     var active, avail, locked;
-    var soundSrc, cycleActive, debugLog, main;
+    var display, labels;
+    var soundSrc, cycleActive, updateDisplay, debugLog, main;
 
     // Imports
     "common.scd".loadRelative(true);
@@ -33,6 +34,7 @@ Server.default.waitForBoot({
             ~pitchBus.free;
             ~ampBus.free;
             Buffer.freeAll(~serv);
+            Window.closeAll;
             port.close;
             ~serv.sync;
             ~serv.quit;
@@ -43,7 +45,7 @@ Server.default.waitForBoot({
     ~serv.sync;
 
     soundSrc = {|bus|
-        if (~debug, {
+        ~debug.if({
             SinOsc.ar(220 + 220 * LFTri.kr(TRand.kr(0.1, 0.5, Dust.kr(1))).unipolar)
         }, {
             SoundIn.ar(bus)
@@ -86,10 +88,38 @@ Server.default.waitForBoot({
     grp = Group(~serv);
     ~serv.sync;
 
+    // Display Init
+    display = Window.new(
+        "Petal", resizable: false, border: false, scroll: false
+    ).alwaysOnTop_(true);
+    labels = (
+        muted: StaticText.new(),
+        active: StaticText.new(),
+        ctrls: { (lbl: StaticText.new(), knob: Knob.new()) } ! nctrls,
+    );
+    display.layout = VLayout.new(
+        labels.muted,
+        labels.active,
+        [
+            VLayout.new(*labels.ctrls.collect({|ctrl|
+                HLayout.new(
+                    [ctrl.knob, align: \left],
+                    [ctrl.lbl, align: \left],
+                    [nil, stretch: 1]
+                )
+            })),
+            align: \center
+        ],
+        [nil, strech: 1]
+    );
+    display.front;
+
     // Add xfade as a control to all fxs except dummy
     ctrls.do {|ctrl, fx|
         if (fx != \dummy, {
-            ctrl = ctrl.addFirst(\xfade -> ControlSpec(0, 1, step: 0.01, default: 1));
+            ctrl = ctrl.addFirst(
+                \xfade -> ControlSpec(0, 1, step: 0.01, default: 1, units: \pct)
+            );
         });
     };
 
@@ -129,11 +159,45 @@ Server.default.waitForBoot({
         active[curIdx];
     };
 
+    updateDisplay = {|curIdx, muted, active, ctrls, locked|
+        var fx = active[curIdx];
+        {
+            labels.muted.string = "Bypass: %".format(muted.notNil.if({ "On" }, { "Off" }));
+            labels.active.string = "Focused Effect: % (slot %)".format(
+                fx.defName,
+                curIdx
+            );
+            labels.ctrls.do {|label, idx|
+                var ctrl = ctrls[fx.defName][idx];
+                ctrl.notNil.if({
+                    fx.get(ctrl.key, {|val|
+                        {
+                            label.lbl.string = "%: %".format(
+                                ctrl.key,
+                                ctrl.value.units.switch(
+                                    \pct, { "%\\%".format((val * 100).round(1).asInteger); },
+                                    \hz, { "% Hz".format(val.round(0.01)); },
+                                    \sec, { "% sec".format(val.round(0.01)); },
+                                    \mult, { "%x".format(val.round(0.01)); },
+                                    { val.round(0.01); }
+                                )
+                            );
+                            label.knob.value = ctrl.value.unmap(val);
+                        }.defer;
+                    });
+                }, {
+                    label.lbl.string = "N/A";
+                    label.knob.value = 0;
+                })
+            };
+        }.defer;
+    };
+
     debugLog = {|curIdx, muted, active, ctrls, locked|
         if (~debug, {
             postf("CurIdx: %\nActive: %\nMuted: %\n", curIdx, active[curIdx].defName, muted.notNil);
             active.drop(-1).do {|fx, idx|
-                postf("% %controls: [ ", fx.defName, if (locked[idx], { "(locked) " }, { "" }));
+                postf("% %controls: [ ", fx.defName, locked[idx].if({ "(locked) " }, { "" }));
                 ctrls[fx.defName].do {|ctrl|
                     fx.get(ctrl.key, {|val|
                         postf("%=% ", ctrl.key, val.round(0.01));
@@ -164,7 +228,7 @@ Server.default.waitForBoot({
 
             // Toggle mute
             if (data.mute, {
-                muted = if (muted.isNil, {
+                muted = muted.isNil.if({
                     Synth.tail(grp, \mute, [\inbus, [0, 0]]);
                 }, {
                     muted.free;
@@ -176,7 +240,7 @@ Server.default.waitForBoot({
             // Change fx
             if (data.left || data.right) {
                 fx = cycleActive.value(
-                    fxName, curIdx, avail, if (data.left, { -1 }, { 1 })
+                    fxName, curIdx, avail, data.left.if({ -1 }, { 1 })
                 );
                 changed = true;
             };
@@ -206,6 +270,7 @@ Server.default.waitForBoot({
 
             // Log new values
             if (changed, {
+                updateDisplay.value(curIdx, muted, active, ctrls, locked);
                 debugLog.value(curIdx, muted, active, ctrls, locked);
             });
         };
@@ -218,3 +283,4 @@ Server.default.waitForBoot({
 
 // For debugging
 SerialPort.closeAll;
+Window.closeAll;

@@ -18,7 +18,7 @@ var fxName = \wah;
 });
 
 fxName -> [
-    \speed -> ControlSpec(0, 20, step: 0.1, default: 2),
+    \speed -> ControlSpec(0, 20, step: 0.1, default: 2, units: \hz),
     \q -> ControlSpec(1, 5, step: 0.1, default: 2)
 ];
 )

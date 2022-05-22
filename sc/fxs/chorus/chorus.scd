@@ -34,7 +34,7 @@ var fxName = \chorus;
 });
 
 fxName -> [
-    \speed -> ControlSpec(0, 0.15, step: 0.01, default: 0.05),
-    \depth -> ControlSpec(0, 0.2, step: 0.01, default: 0.05)
+    \speed -> ControlSpec(0, 0.15, step: 0.01, default: 0.05, units: \hz),
+    \depth -> ControlSpec(0, 0.2, step: 0.01, default: 0.05, units: \mult)
 ];
 )

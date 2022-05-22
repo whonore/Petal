@@ -86,6 +86,7 @@ void loop() {
     delay(DELAY);
 }
 
+// TODO: Return relative change
 static void readEncoder(struct encoder_t *encoder) {
     byte Acur = digitalRead(encoder->A);
     if ((encoder->Alast == HIGH) && (Acur == LOW)) {

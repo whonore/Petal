@@ -18,7 +18,7 @@ var fxName = \freeVerb;
 });
 
 fxName -> [
-    \mix -> ControlSpec(0, 1, step: 0.01, default: 0.33),
-    \size -> ControlSpec(0, 1, step: 0.05, default: 0.5)
+    \mix -> ControlSpec(0, 1, step: 0.01, default: 0.33, units: \pct),
+    \size -> ControlSpec(0, 1, step: 0.05, default: 0.5, units: \pct)
 ];
 )
