@@ -58,8 +58,14 @@ fxName -> (
     name: "AlgoVerb",
     desc: "Simulates reverb using comb and allpass filters.",
     ctrls: [
-        \mix -> ControlSpec(0, 1, step: 0.01, default: 0.33, units: \pct),
-        \size -> ControlSpec(0, 1, step: 0.05, default: 0.5, units: \pct)
+        \mix -> (
+            name: "Mix (Wet/Dry)",
+            spec: ControlSpec(0, 1, step: 0.01, default: 0.33, units: \pct)
+        ),
+        \size -> (
+            name: "Room Size",
+            spec: ControlSpec(0, 1, step: 0.05, default: 0.5, units: \pct)
+        )
     ]
 );
 )

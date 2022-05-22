@@ -21,8 +21,14 @@ fxName -> (
     name: "AutoWah",
     desc: "Simulates a wah pedal at a consistent rate.",
     ctrls: [
-        \speed -> ControlSpec(0, 20, step: 0.1, default: 2, units: \hz),
-        \q -> ControlSpec(1, 5, step: 0.1, default: 2)
+        \speed -> (
+            name: "Speed",
+            spec: ControlSpec(0, 20, step: 0.1, default: 2, units: \hz)
+        ),
+        \q -> (
+            name: "Q",
+            spec: ControlSpec(1, 5, step: 0.1, default: 2)
+        )
     ]
 );
 )

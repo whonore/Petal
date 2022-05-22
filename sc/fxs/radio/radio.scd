@@ -41,10 +41,22 @@ fxName -> (
     name: "Radio",
     desc: "Simulates an old radio.",
     ctrls: [
-        \noiseAmp -> ControlSpec(0, 0.4, step: 0.01, default: 0.05, units: \pct),
-        \noiseRate -> ControlSpec(50, 300, step: 1, default: 100, units: \hz),
-        \minFreq -> ControlSpec(500, 1000, step: 1, default: 700, units: \hz),
-        \maxFreq -> ControlSpec(1500, 2200, step: 1, default: 2000, units: \hz)
+        \noiseAmp -> (
+            name: "Noise Amplitude Multiplier",
+            spec: ControlSpec(0, 0.4, step: 0.01, default: 0.05, units: \pct)
+        ),
+        \noiseRate -> (
+            name: "Noise Rate",
+            spec: ControlSpec(50, 300, step: 1, default: 100, units: \hz)
+        ),
+        \minFreq -> (
+            name: "High-Pass Cutoff",
+            spec: ControlSpec(500, 1000, step: 1, default: 700, units: \hz)
+        ),
+        \maxFreq -> (
+            name: "Low-Pass Cutoff",
+            spec: ControlSpec(1500, 2200, step: 1, default: 2000, units: \hz)
+        )
     ]
 );
 )

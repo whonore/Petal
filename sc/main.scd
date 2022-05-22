@@ -122,7 +122,10 @@ Server.default.waitForBoot({
     fxInfo.do {|info, fx|
         if (fx != \dummy, {
             info.ctrls = info.ctrls.addFirst(
-                \xfade -> ControlSpec(0, 1, step: 0.01, default: 1, units: \pct)
+                \xfade -> (
+                    name: "Volume",
+                    spec: ControlSpec(0, 1, step: 0.01, default: 1, units: \pct)
+                )
             );
         });
     };
@@ -149,8 +152,8 @@ Server.default.waitForBoot({
         active[curIdx] = Synth.replace(
             active[curIdx],
             nextAvail,
-            fxInfo[nextAvail].ctrls.collect {|ctrlSpec|
-                [ctrlSpec.key, ctrlSpec.value.default]
+            fxInfo[nextAvail].ctrls.collect {|ctrl|
+                [ctrl.key, ctrl.value.spec.default]
             }.flat
         );
 
@@ -178,10 +181,11 @@ Server.default.waitForBoot({
                 var ctrl = fxInfo[fx.defName].ctrls[idx];
                 ctrl.notNil.if({
                     fx.get(ctrl.key, {|val|
+                        var spec = ctrl.value.spec;
                         {
                             label.lbl.string = "%: %".format(
-                                ctrl.key,
-                                ctrl.value.units.switch(
+                                ctrl.value.name,
+                                spec.units.switch(
                                     \pct, { "%\\%".format((val * 100).round(1).asInteger); },
                                     \hz, { "% Hz".format(val.round(0.01)); },
                                     \sec, { "% sec".format(val.round(0.01)); },
@@ -189,7 +193,7 @@ Server.default.waitForBoot({
                                     { val.round(0.01); }
                                 )
                             );
-                            label.knob.value = ctrl.value.unmap(val);
+                            label.knob.value = spec.unmap(val);
                         }.defer;
                     });
                 }, {
@@ -266,11 +270,12 @@ Server.default.waitForBoot({
             // Update if any control changed
             if (data.ctrlOffs.any {|x| x != 0; }, {
                 // Map raw values to correct range for current fx
-                ctrls.do {|ctrlSpec, idx|
-                    fx.get(ctrlSpec.key, {|cur|
-                        var off = data.ctrlOffs[idx] * ctrlSpec.value.step;
-                        var new = ctrlSpec.value.map(ctrlSpec.value.unmap(cur) + off);
-                        fx.set(ctrlSpec.key, new);
+                ctrls.do {|ctrl, idx|
+                    var spec = ctrl.value.spec;
+                    fx.get(ctrl.key, {|cur|
+                        var off = data.ctrlOffs[idx] * spec.step;
+                        var new = spec.map(spec.unmap(cur) + off);
+                        fx.set(ctrl.key, new);
                     })
                 };
                 changed = true;

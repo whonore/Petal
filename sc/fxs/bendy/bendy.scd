@@ -39,10 +39,22 @@ fxName -> (
     name: "Bendy",
     desc: "Bends and wobbles the pitch.",
     ctrls: [
-        \wobbleRate -> ControlSpec(0.01, 10, step: 0.01, default: 3, units: \hz),
-        \bendDur -> ControlSpec(0.1, 5, step: 0.01, default: 1, units: \sec),
-        \wobble -> ControlSpec(0, 0.1, step: 0.01, default: 0.05, units: \mult),
-        \bend -> ControlSpec(0, 10, step: 0.01, default: 2, units: \mult)
+        \wobbleRate -> (
+            name: "Wobble Rate",
+            spec: ControlSpec(0.01, 10, step: 0.01, default: 3, units: \hz)
+        ),
+        \bendDur -> (
+            name: "Bend Duration",
+            spec: ControlSpec(0.1, 5, step: 0.01, default: 1, units: \sec)
+        ),
+        \wobble -> (
+            name: "Wobble Amount",
+            spec: ControlSpec(0, 0.1, step: 0.01, default: 0.05, units: \mult)
+        ),
+        \bend -> (
+            name: "Bend Amount",
+            spec: ControlSpec(0, 10, step: 0.01, default: 2, units: \mult)
+        )
     ]
 );
 )
