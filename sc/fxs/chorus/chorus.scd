@@ -33,8 +33,12 @@ var fxName = \chorus;
     (in + mods) / 2;
 });
 
-fxName -> [
-    \speed -> ControlSpec(0, 0.15, step: 0.01, default: 0.05, units: \hz),
-    \depth -> ControlSpec(0, 0.2, step: 0.01, default: 0.05, units: \mult)
-];
+fxName -> (
+    name: "Chorus",
+    desc: "Creates slightly out-of-phase copies of the signal.",
+    ctrls: [
+        \speed -> ControlSpec(0, 0.15, step: 0.01, default: 0.05, units: \hz),
+        \depth -> ControlSpec(0, 0.2, step: 0.01, default: 0.05, units: \mult)
+    ]
+);
 )

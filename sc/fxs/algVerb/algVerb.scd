@@ -54,8 +54,12 @@ var fxName = \algVerb;
     (in * (1 - mix)) + (verb * mix);
 });
 
-fxName -> [
-    \mix -> ControlSpec(0, 1, step: 0.01, default: 0.33, units: \pct),
-    \size -> ControlSpec(0, 1, step: 0.05, default: 0.5, units: \pct)
-];
+fxName -> (
+    name: "AlgoVerb",
+    desc: "Simulates reverb using comb and allpass filters.",
+    ctrls: [
+        \mix -> ControlSpec(0, 1, step: 0.01, default: 0.33, units: \pct),
+        \size -> ControlSpec(0, 1, step: 0.05, default: 0.5, units: \pct)
+    ]
+);
 )

@@ -23,5 +23,9 @@ var fxName = \octaver;
     (in + (in * SinOsc.ar(freq / 2))) / 2;
 });
 
-fxName -> [];
+fxName -> (
+    name: "Octaver",
+    desc: "Doubles the pitch an octave lower.",
+    ctrls: []
+);
 )

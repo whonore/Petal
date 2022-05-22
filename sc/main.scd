@@ -13,7 +13,7 @@ Server.default.quit;
 Server.default.waitForBoot({
     var minFreq, maxFreq;
     var port;
-    var nfxs, nctrls, grp, fxs, ctrls;
+    var nfxs, nctrls, grp, fxs, fxInfo;
     var active, avail, locked;
     var display, labels;
     var soundSrc, cycleActive, updateDisplay, debugLog, main;
@@ -21,7 +21,7 @@ Server.default.waitForBoot({
     // Imports
     "common.scd".loadRelative(true);
     "data.scd".loadRelative(true);
-    #ctrls, fxs = "fxs/loadFxs.scd".loadRelative(true)[0];
+    #fxInfo, fxs = "fxs/loadFxs.scd".loadRelative(true)[0];
 
     // Initialize serial port
     port = ~initData.value();
@@ -80,7 +80,11 @@ Server.default.waitForBoot({
     // Pass the signal untouched
     ~makeFx.value(\dummy, {|in| in; });
     fxs.insert(0, \dummy);
-    ctrls[\dummy] = [];
+    fxInfo[\dummy] = (
+        name: "Passthrough",
+        desc: "Passes the signal untouched.",
+        ctrls: []
+    );
 
     // Synth Init
     nfxs = 4; // Number of active fxs
@@ -115,9 +119,9 @@ Server.default.waitForBoot({
     display.front;
 
     // Add xfade as a control to all fxs except dummy
-    ctrls.do {|ctrl, fx|
+    fxInfo.do {|info, fx|
         if (fx != \dummy, {
-            ctrl = ctrl.addFirst(
+            info.ctrls = info.ctrls.addFirst(
                 \xfade -> ControlSpec(0, 1, step: 0.01, default: 1, units: \pct)
             );
         });
@@ -145,7 +149,7 @@ Server.default.waitForBoot({
         active[curIdx] = Synth.replace(
             active[curIdx],
             nextAvail,
-            ctrls[nextAvail].collect {|ctrlSpec|
+            fxInfo[nextAvail].ctrls.collect {|ctrlSpec|
                 [ctrlSpec.key, ctrlSpec.value.default]
             }.flat
         );
@@ -159,18 +163,19 @@ Server.default.waitForBoot({
         active[curIdx];
     };
 
-    updateDisplay = {|curIdx, muted, active, ctrls, locked|
+    updateDisplay = {|curIdx, muted, active, fxInfo, locked|
         var fx = active[curIdx];
         {
             labels.muted.string = "Bypass All: %".format(
                 muted.notNil.if({ "On" }, { "Off" })
             );
-            labels.active.string = "Focused Effect: % (slot %)".format(
-                fx.defName,
-                curIdx
+            labels.active.string = "Focused Effect: % (slot %)\n%".format(
+                fxInfo[fx.defName].name,
+                curIdx,
+                fxInfo[fx.defName].desc,
             );
             labels.ctrls.do {|label, idx|
-                var ctrl = ctrls[fx.defName][idx];
+                var ctrl = fxInfo[fx.defName].ctrls[idx];
                 ctrl.notNil.if({
                     fx.get(ctrl.key, {|val|
                         {
@@ -195,12 +200,12 @@ Server.default.waitForBoot({
         }.defer;
     };
 
-    debugLog = {|curIdx, muted, active, ctrls, locked|
+    debugLog = {|curIdx, muted, active, fxInfo, locked|
         if (~debug, {
             postf("CurIdx: %\nActive: %\nMuted: %\n", curIdx, active[curIdx].defName, muted.notNil);
             active.drop(-1).do {|fx, idx|
                 postf("% %controls: [ ", fx.defName, locked[idx].if({ "(locked) " }, { "" }));
-                ctrls[fx.defName].do {|ctrl|
+                fxInfo[fx.defName].ctrls.do {|ctrl|
                     fx.get(ctrl.key, {|val|
                         postf("%=% ", ctrl.key, val.round(0.01));
                     });
@@ -221,12 +226,12 @@ Server.default.waitForBoot({
 
         loop {
             var fx, fxName;
-            var ctrl, data;
+            var ctrls, data;
             var changed = false;
 
             fx = active[curIdx];
             fxName = fx.defName;
-            ctrl = ctrls[fxName];
+            ctrls = fxInfo[fxName].ctrls;
             data = ~readData.value(nfxs, nctrls);
 
             // Toggle mute
@@ -261,7 +266,7 @@ Server.default.waitForBoot({
             // Update if any control changed
             if (data.ctrlOffs.any {|x| x != 0; }, {
                 // Map raw values to correct range for current fx
-                ctrl.do {|ctrlSpec, idx|
+                ctrls.do {|ctrlSpec, idx|
                     fx.get(ctrlSpec.key, {|cur|
                         var off = data.ctrlOffs[idx] * ctrlSpec.value.step;
                         var new = ctrlSpec.value.map(ctrlSpec.value.unmap(cur) + off);
@@ -273,8 +278,8 @@ Server.default.waitForBoot({
 
             // Log new values
             if (first || changed, {
-                updateDisplay.value(curIdx, muted, active, ctrls, locked);
-                debugLog.value(curIdx, muted, active, ctrls, locked);
+                updateDisplay.value(curIdx, muted, active, fxInfo, locked);
+                // debugLog.value(curIdx, muted, active, fxInfo, locked);
             });
 
             first = false;

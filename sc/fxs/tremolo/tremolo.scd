@@ -17,8 +17,12 @@ var fxName = \tremolo;
     in * SinOsc.ar(speed).range(1 - depth, 1);
 });
 
-fxName -> [
-    \speed -> ControlSpec(1, 10, step: 0.1, default: 7, units: \hz),
-    \depth -> ControlSpec(0, 1, step: 0.05, default: 1, units: \pct)
-];
+fxName -> (
+    name: "Tremolo",
+    desc: "Modulates the maximum amplitude.",
+    ctrls: [
+        \speed -> ControlSpec(1, 10, step: 0.1, default: 7, units: \hz),
+        \depth -> ControlSpec(0, 1, step: 0.05, default: 1, units: \pct)
+    ]
+);
 )

@@ -3,7 +3,7 @@
 ** conVerb.scd
 ** Wolf Honore
 **
-** Convolution reverb using IR from a church
+** Convolution reverb using an IR from a church.
 */
 
 (
@@ -35,5 +35,9 @@ var fxName = \conVerb;
     });
 }.fork;
 
-fxName -> [];
+fxName -> (
+    name: "ConvVerb",
+    desc: "Simulates the reverb of a church.",
+    ctrls: []
+);
 )

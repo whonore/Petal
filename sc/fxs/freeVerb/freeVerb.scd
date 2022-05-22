@@ -17,8 +17,12 @@ var fxName = \freeVerb;
     FreeVerb.ar(in, mix, size);
 });
 
-fxName -> [
-    \mix -> ControlSpec(0, 1, step: 0.01, default: 0.33, units: \pct),
-    \size -> ControlSpec(0, 1, step: 0.05, default: 0.5, units: \pct)
-];
+fxName -> (
+    name: "FreeVerb",
+    desc: "Simulates reverb using a built-in SuperCollider filter.",
+    ctrls: [
+        \mix -> ControlSpec(0, 1, step: 0.01, default: 0.33, units: \pct),
+        \size -> ControlSpec(0, 1, step: 0.05, default: 0.5, units: \pct)
+    ]
+);
 )

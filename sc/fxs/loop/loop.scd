@@ -36,10 +36,14 @@ var fxName = \loop;
     (in * (1 - mix)) + (loop * mix);
 });
 
-fxName -> [
-    \mix -> ControlSpec(0, 1, step: 0.01, default: 0.2, units: \pct),
-    \dur -> ControlSpec(0.1, 3, step: 0.01, default: 0.5, units: \sec),
-    \thresh -> ControlSpec(0, 1, step: 0.01, default: 0.4, units: \pct),
-    \rate -> ControlSpec(0.5, 2, step: 0.1, default: 1, units: \mult)
-];
+fxName -> (
+    name: "Looper",
+    desc: "Loops anything above the amplitude cutoff with an adjustable playback rate.",
+    ctrls: [
+        \mix -> ControlSpec(0, 1, step: 0.01, default: 0.2, units: \pct),
+        \dur -> ControlSpec(0.1, 3, step: 0.01, default: 0.5, units: \sec),
+        \thresh -> ControlSpec(0, 1, step: 0.01, default: 0.4, units: \pct),
+        \rate -> ControlSpec(0.5, 2, step: 0.1, default: 1, units: \mult)
+    ]
+);
 )

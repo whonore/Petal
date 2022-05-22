@@ -44,9 +44,13 @@ var fxName = \distortion;
 });
 
 // Controls
-fxName -> [
-    \gain -> ControlSpec(1, 10, step: 0.05, default: 3, units: \mult),
-    \dist -> ControlSpec(1, 10, step: 0.05, default: 2.5, units: \mult),
-    \tone -> ControlSpec(-1, 1, step: 0.05, default: 0.3, units: \pct)
-];
+fxName -> (
+    name: "Overdrive",
+    desc: "Mildly distorts.",
+    ctrls: [
+        \gain -> ControlSpec(1, 10, step: 0.05, default: 3, units: \mult),
+        \dist -> ControlSpec(1, 10, step: 0.05, default: 2.5, units: \mult),
+        \tone -> ControlSpec(-1, 1, step: 0.05, default: 0.3, units: \pct)
+    ]
+);
 )

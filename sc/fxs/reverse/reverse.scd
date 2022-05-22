@@ -42,5 +42,9 @@ var fxName = \reverse;
     ]);
 });
 
-fxName -> [];
+fxName -> (
+    name: "Reverser",
+    desc: "Reverses the incoming signal.",
+    ctrls: []
+);
 )

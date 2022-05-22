@@ -35,10 +35,14 @@ var fxName = \bendy;
     (wobbled + bent) / (1 + ampEnv);
 });
 
-fxName -> [
-    \wobbleRate -> ControlSpec(0.01, 10, step: 0.01, default: 3, units: \hz),
-    \bendDur -> ControlSpec(0.1, 5, step: 0.01, default: 1, units: \sec),
-    \wobble -> ControlSpec(0, 0.1, step: 0.01, default: 0.05, units: \mult),
-    \bend -> ControlSpec(0, 10, step: 0.01, default: 2, units: \mult)
-];
+fxName -> (
+    name: "Bendy",
+    desc: "Bends and wobbles the pitch.",
+    ctrls: [
+        \wobbleRate -> ControlSpec(0.01, 10, step: 0.01, default: 3, units: \hz),
+        \bendDur -> ControlSpec(0.1, 5, step: 0.01, default: 1, units: \sec),
+        \wobble -> ControlSpec(0, 0.1, step: 0.01, default: 0.05, units: \mult),
+        \bend -> ControlSpec(0, 10, step: 0.01, default: 2, units: \mult)
+    ]
+);
 )

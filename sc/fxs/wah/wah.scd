@@ -17,8 +17,12 @@ var fxName = \wah;
     RLPF.ar(in, SinOsc.ar(speed).range(200, 2000), q.reciprocal);
 });
 
-fxName -> [
-    \speed -> ControlSpec(0, 20, step: 0.1, default: 2, units: \hz),
-    \q -> ControlSpec(1, 5, step: 0.1, default: 2)
-];
+fxName -> (
+    name: "AutoWah",
+    desc: "Simulates a wah pedal at a consistent rate.",
+    ctrls: [
+        \speed -> ControlSpec(0, 20, step: 0.1, default: 2, units: \hz),
+        \q -> ControlSpec(1, 5, step: 0.1, default: 2)
+    ]
+);
 )
