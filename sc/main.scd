@@ -215,6 +215,7 @@ Server.default.waitForBoot({
         var curIdx = 0;
         var avail = true ! fxs.size;
         var locked = false ! nfxs;
+        var first = true;
 
         loop {
             var fx, fxName;
@@ -255,24 +256,26 @@ Server.default.waitForBoot({
                 });
             };
 
-            // Unlock current index if any value changed
-            if (data.ctrls.notNil, { locked[curIdx] = false; });
-
-            // Update if not locked
-            if (locked[curIdx].not && data.ctrls.notNil, {
+            // Update if any control changed
+            if (data.ctrlOffs.any {|x| x != 0; }, {
                 // Map raw values to correct range for current fx
-                var vals = ctrl.collect {|ctrlSpec, idx|
-                    [ctrlSpec.key, ctrlSpec.value.map(data.ctrls[idx])];
-                }.flat;
-                fx.set(*vals);
+                ctrl.do {|ctrlSpec, idx|
+                    fx.get(ctrlSpec.key, {|cur|
+                        var off = data.ctrlOffs[idx] * ctrlSpec.value.step;
+                        var new = ctrlSpec.value.map(ctrlSpec.value.unmap(cur) + off);
+                        fx.set(ctrlSpec.key, new);
+                    })
+                };
                 changed = true;
             });
 
             // Log new values
-            if (changed, {
+            if (first || changed, {
                 updateDisplay.value(curIdx, muted, active, ctrls, locked);
                 debugLog.value(curIdx, muted, active, ctrls, locked);
             });
+
+            first = false;
         };
     };
 

@@ -7,8 +7,7 @@
  */
 
 const uint32_t DELAY = 1; // msec to wait between sending data
-const byte ENCODER_MAX = 128;
-const byte SYNC = ENCODER_MAX; // Special value to mark start of send
+const byte SYNC = 128; // Special value to mark start of send
 
 struct button_t {
     const byte pin;
@@ -20,12 +19,11 @@ struct encoder_t {
     const byte A;
     const byte B;
     struct button_t button;
-    byte pos;
     byte Alast;
 };
 #define ENCODER(a, b, but) { \
     .A = (a), .B = (b), .button = BUTTON(but), \
-    .pos = 10, .Alast = LOW, \
+    .Alast = LOW, \
 }
 
 struct encoder_t encoders[] = {
@@ -63,10 +61,11 @@ void setup() {
 }
 
 void loop() {
+    int8_t offset[NENCODERS];
     bool pressed[NENCODERS + NBUTTONS];
 
     for (byte i = 0; i < NENCODERS; i++) {
-        readEncoder(&encoders[i]);
+        offset[i] = readEncoder(&encoders[i]);
         pressed[i] = wasPressed(&encoders[i].button);
     }
     for (byte i = 0; i < NBUTTONS; i++) {
@@ -77,7 +76,7 @@ void loop() {
     // TODO: Use a bitarray for pressed
     Serial.write(SYNC);
     for (byte i = 0; i < NENCODERS; i++) {
-        Serial.write(encoders[i].pos - 1); // Shift to [0, ENCODER_MAX - 1]
+        Serial.write(offset[i]);
     }
     for (byte i = 0; i < NENCODERS + NBUTTONS; i++) {
         Serial.write(pressed[i]);
@@ -86,14 +85,14 @@ void loop() {
     delay(DELAY);
 }
 
-// TODO: Return relative change
-static void readEncoder(struct encoder_t *encoder) {
+static int8_t readEncoder(struct encoder_t *encoder) {
+    int8_t off = 0;
     byte Acur = digitalRead(encoder->A);
     if ((encoder->Alast == HIGH) && (Acur == LOW)) {
-        encoder->pos = encoder->pos + (digitalRead(encoder->B) == HIGH ? 1 : -1);
-        encoder->pos = constrain(encoder->pos, 1, ENCODER_MAX);
+        off = (digitalRead(encoder->B) == HIGH ? 1 : -1);
     }
     encoder->Alast = Acur;
+    return off;
 }
 
 static bool wasPressed(struct button_t *button) {

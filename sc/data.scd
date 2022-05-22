@@ -9,7 +9,6 @@
 // Only execute once
 ~data_loaded ?? {
     var portName, port;
-    var oldCtrls;
     var parseData;
     var leftBtn = 0;
     var rightBtn = 1;
@@ -28,7 +27,8 @@
     };
 
     parseData = {|raw, nfxs, nctrls|
-        var ctrls = raw.keep(nctrls).linlin(0, 127, 0, 1);
+        // Convert to signed
+        var ctrlOffs = raw.keep(nctrls).collect {|x| (x > 127).if({ x - 256 }, { x }); };
         var encoders = raw.drop(nctrls).keep(nctrls).indicesOfEqual(1) ? [];
         var btns = raw.drop(2 * nctrls).keep(nfxs).indicesOfEqual(1) ? [];
         var leftRightMute = raw.drop((2 * nctrls) + nfxs).indicesOfEqual(1) ? [];
@@ -37,10 +37,9 @@
             left: leftRightMute.includes(leftBtn),
             right: leftRightMute.includes(rightBtn),
             idxs: btns,
-            ctrls: (ctrls != oldCtrls).if({ ctrls }, { nil });
+            ctrlOffs: ctrlOffs,
         );
 
-        oldCtrls = ctrls;
         data;
     };
 
