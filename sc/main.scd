@@ -174,7 +174,7 @@ Server.default.waitForBoot({
             );
             labels.active.string = "Focused Effect: % (slot %)\n%".format(
                 fxInfo[fx.defName].name,
-                curIdx,
+                curIdx + 1,
                 fxInfo[fx.defName].desc,
             );
             labels.ctrls.do {|label, idx|
