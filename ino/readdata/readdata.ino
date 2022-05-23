@@ -145,11 +145,11 @@ static byte readButton(struct button_t *button) {
 }
 
 static bool isPressed(struct button_t *button) {
-    return readButton(button) == HIGH;
+    return readButton(button) == LOW;
 }
 
 static bool wasPressed(struct button_t *button) {
     byte last = button->last;
     byte st = readButton(button);
-    return st == HIGH && last == LOW;
+    return st == LOW && last == HIGH;
 }
