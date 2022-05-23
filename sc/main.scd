@@ -13,8 +13,8 @@ Server.default.quit;
 Server.default.waitForBoot({
     var minFreq, maxFreq;
     var port;
-    var nfxs, nctrls, grp, fxs, fxInfo;
-    var active, avail, locked;
+    var nfxs, nctrls, bigStep, grp, fxs, fxInfo;
+    var active;
     var display, labels;
     var soundSrc, cycleActive, updateDisplay, debugLog, main;
 
@@ -89,6 +89,7 @@ Server.default.waitForBoot({
     // Synth Init
     nfxs = 4; // Number of active fxs
     nctrls = 5; // Max number of controls
+    bigStep = 5;
     grp = Group(~serv);
     ~serv.sync;
 
@@ -272,8 +273,9 @@ Server.default.waitForBoot({
                 // Map raw values to correct range for current fx
                 ctrls.do {|ctrl, idx|
                     var spec = ctrl.value.spec;
+                    var step = spec.step * data.ctrlBtns.includes(idx).if({ bigStep }, { 1 });
                     fx.get(ctrl.key, {|cur|
-                        var off = data.ctrlOffs[idx] * spec.step;
+                        var off = data.ctrlOffs[idx] * step;
                         var new = spec.map(spec.unmap(cur) + off);
                         fx.set(ctrl.key, new);
                     })

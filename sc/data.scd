@@ -38,7 +38,7 @@
             { "Invalid ctrlOff %".format(xs).error; }
         )};
         var btnBits = fullBits.drop(2 * nctrls);
-        var encode_btns = btnBits.keep(nctrls).indicesOfEqual(true) ? []; // Unused
+        var ctrlBtns = btnBits.keep(nctrls).indicesOfEqual(true) ? [];
         var btns = btnBits.drop(nctrls).keep(nfxs).indicesOfEqual(true) ? [];
         var leftRightMute = btnBits.drop(nctrls + nfxs).indicesOfEqual(true) ? [];
 
@@ -48,6 +48,7 @@
             right: leftRightMute.includes(rightBtn),
             idxs: btns,
             ctrlOffs: ctrlOffs,
+            ctrlBtns: ctrlBtns
         );
     };
 
