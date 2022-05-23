@@ -19,7 +19,7 @@
         SynthDef(name, {|out=0, xfade=1, gate=1|
             var in, env, snd;
 
-            // Wrap in an sustaining envelope so the effect can be released gracefully
+            // Wrap in a sustaining envelope so the effect can be released gracefully
             in = In.ar(out, 2);
             env = Linen.kr(gate, 0.5, 1, 0.5, doneAction: 2);
 
