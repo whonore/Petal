@@ -226,8 +226,8 @@ Server.default.waitForBoot({
         var curIdx = 0;
         var avail = true ! fxs.size;
         var locked = false ! nfxs;
-        var first = true;
 
+        updateDisplay.value(curIdx, muted, active, fxInfo, locked);
         loop {
             var fx, fxName;
             var ctrls, data;
@@ -282,12 +282,10 @@ Server.default.waitForBoot({
             });
 
             // Log new values
-            if (first || changed, {
+            if (changed, {
                 updateDisplay.value(curIdx, muted, active, fxInfo, locked);
                 // debugLog.value(curIdx, muted, active, fxInfo, locked);
             });
-
-            first = false;
         };
     };
 

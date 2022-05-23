@@ -28,13 +28,16 @@
     parseData = {|raw, nfxs, nctrls|
         // Convert to bits
         var bits = raw.collect {|x| 8.collect {|bit| x.bitTest(bit); }; }.flatten;
-        var ctrlOffs = bits.keep(2 * nctrls).clump(2).collect {|xs| xs.switch(
+        // Pad missing bits with 0
+        var nbits = (2 * nctrls) + nctrls + nfxs + 3;
+        var fullBits = bits ++ (false ! (nbits - bits.size));
+        var ctrlOffs = fullBits.keep(2 * nctrls).clump(2).collect {|xs| xs.switch(
             [false, false], { 0 }, // No change
             [false, true], { -1 }, // Left
             [true, false], { 1 },  // Right
             { "Invalid ctrlOff %".format(xs).error; }
         )};
-        var btnBits = bits.drop(2 * nctrls);
+        var btnBits = fullBits.drop(2 * nctrls);
         var encode_btns = btnBits.keep(nctrls).indicesOfEqual(true) ? []; // Unused
         var btns = btnBits.drop(nctrls).keep(nfxs).indicesOfEqual(true) ? [];
         var leftRightMute = btnBits.drop(nctrls + nfxs).indicesOfEqual(true) ? [];

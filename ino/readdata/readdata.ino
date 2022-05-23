@@ -115,7 +115,15 @@ void loop() {
         byte bit_idx = bit_off % 8;
         bitWrite(pkt[idx], bit_idx, pressed[i]);
     }
-    Serial.write(pkt, PKT_BYTES);
+
+    // Only send up to the last non-zero byte
+    byte last_non_zero = PKT_BYTES - 1;
+    while (0 < last_non_zero && pkt[last_non_zero] == 0) {
+        last_non_zero -= 1;
+    }
+    if (last_non_zero != 0) {
+        Serial.write(pkt, last_non_zero + 1);
+    }
 
     delay(DELAY);
 }
