@@ -8,11 +8,9 @@
 
 // Only execute once
 ~data_loaded ?? {
-    var portName, port;
+    var port;
     var parseData;
-    var leftBtn = 0;
-    var rightBtn = 1;
-    var muteBtn = 2;
+    var btnIdxs = (left: 0, right: 1, mute: 2);
     var syncVal = 255; // Special value to mark start of send
     var synced = false;
 
@@ -20,7 +18,7 @@
 
     // Serial Init
     ~initData = {
-        portName = "/dev/ttyS0";
+        var portName = "/dev/ttyS0";
         port = SerialPort(portName, 19200, crtscts: true);
         port;
     };
@@ -43,9 +41,9 @@
         var leftRightMute = btnBits.drop(nctrls + nfxs).indicesOfEqual(true) ? [];
 
         (
-            mute: leftRightMute.includes(muteBtn),
-            left: leftRightMute.includes(leftBtn),
-            right: leftRightMute.includes(rightBtn),
+            mute: leftRightMute.includes(btnIdxs.mute),
+            left: leftRightMute.includes(btnIdxs.left),
+            right: leftRightMute.includes(btnIdxs.right),
             idxs: btns,
             ctrlOffs: ctrlOffs,
             ctrlBtns: ctrlBtns
@@ -54,8 +52,8 @@
 
     // Read messages from Arduino
     ~readData = {|nfxs, nctrls|
-        var byte, data;
-        data = List[];
+        var byte;
+        var data = List[];
 
         // Wait until syncVal written
         while ({ synced.not.and { port.read != syncVal }}, {});
