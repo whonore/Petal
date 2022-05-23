@@ -35,7 +35,7 @@ struct encoder_t {
     .Alast = LOW, \
 }
 
-struct encoder_t encoders[] = {
+static struct encoder_t encoders[] = {
     ENCODER(38, 39, 40),
     ENCODER(34, 35, 36),
     ENCODER(30, 31, 32),
@@ -44,7 +44,7 @@ struct encoder_t encoders[] = {
 };
 #define NENCODERS (sizeof(encoders) / sizeof(encoders[0]))
 
-struct button_t buttons[] = {
+static struct button_t buttons[] = {
     BUTTON(37),  // Idx1
     BUTTON(33),  // Idx2
     BUTTON(29),  // Idx3
@@ -77,17 +77,20 @@ void loop() {
     bool pressed[NENCODERS + NBUTTONS];
     byte pkt[PKT_BYTES];
 
+    // Read encoder and button states
     for (byte i = 0; i < NENCODERS; i++) {
         offset[i] = readEncoder(&encoders[i]);
-        pressed[i] = wasPressed(&encoders[i].button);
+        pressed[i] = isPressed(&encoders[i].button);
     }
     for (byte i = 0; i < NBUTTONS; i++) {
         pressed[NENCODERS + i] = wasPressed(&buttons[i]);
     }
 
+    // Build a packet
     memset(pkt, 0, PKT_BYTES);
     pkt[0] = SYNC;
     byte bit_off = 8;
+    // Two bits per encoder (00 = no change, 10 = left, 01 = right)
     for (byte i = 0; i < NENCODERS; i++, bit_off += 2) {
         byte idx = bit_off / 8;
         byte bit_idx = bit_off % 8;
@@ -106,6 +109,7 @@ void loop() {
             break;
         }
     }
+    // One bit per button (0 = unpressed, 1 = pressed)
     for (byte i = 0; i < NENCODERS + NBUTTONS; i++, bit_off += 1) {
         byte idx = bit_off / 8;
         byte bit_idx = bit_off % 8;
@@ -126,9 +130,18 @@ static enum Dir readEncoder(struct encoder_t *encoder) {
     return off;
 }
 
-static bool wasPressed(struct button_t *button) {
+static byte readButton(struct button_t *button) {
     byte st = digitalRead(button->pin);
-    byte last = button->last;
     button->last = st;
-    return (st == HIGH && last == LOW);
+    return st;
+}
+
+static bool isPressed(struct button_t *button) {
+    return readButton(button) == HIGH;
+}
+
+static bool wasPressed(struct button_t *button) {
+    byte last = button->last;
+    byte st = readButton(button);
+    return st == HIGH && last == LOW;
 }

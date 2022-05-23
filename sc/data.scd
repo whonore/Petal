@@ -20,8 +20,7 @@
 
     // Serial Init
     ~initData = {
-        portName = ~debug.not.if({ "/dev/ttyS0" }, { "../ino/tmppty".resolveRelative });
-        portName = "/dev/ttyS0"; // TODO: remove
+        portName = "/dev/ttyS0";
         port = SerialPort(portName, 19200, crtscts: true);
         port;
     };
