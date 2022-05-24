@@ -9,7 +9,8 @@
 // Only execute once
 ~data_loaded ?? {
     var port;
-    var parseData;
+    var parseData, setLEDs;
+    var ledScript = "../scripts/set_led.py".resolveRelative;
     var btnIdxs = (left: 0, right: 1, mute: 2);
     var syncVal = 255; // Special value to mark end of send
     var synced = false;
@@ -50,18 +51,31 @@
         );
     };
 
+    setLEDs = {|nfxs, idxs|
+        if (idxs.isEmpty.not, {
+            var vals = {|idx| idxs.includes(idx).if({ "1" }, { "0" }); } ! nfxs;
+            ([ledScript] ++ vals).unixCmd(postOutput: false);
+        });
+    };
+
     // Read messages from Arduino
     ~readData = {|nfxs, nctrls|
-        var byte;
+        var byte, parsed;
         var data = List[];
 
         // Wait until syncVal written
-        while ({ synced.not.and { port.read != syncVal }}, {});
+        if (synced.not, {
+            setLEDs.value(nfxs, [0]);
+            while ({ port.read != syncVal }, {});
+        });
         synced = true;
+
         while ({ byte = port.read; byte != syncVal }, {
             data.add(byte);
         });
-        parseData.value(data, nfxs, nctrls);
+        parsed = parseData.value(data, nfxs, nctrls);
+        setLEDs.value(nfxs, parsed.idxs);
+        parsed;
     };
 
     ~data_loaded = true;
