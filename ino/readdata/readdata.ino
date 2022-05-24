@@ -9,8 +9,10 @@
 // Number of bytes needed to fit nbits bits
 #define NBYTES(nbits) ((nbits) / 8) + ((nbits) % 8 != 0)
 
-const uint32_t DELAY = 1; // msec to wait between sending data
-const byte SYNC = 255; // Special value to mark start of send
+const uint32_t DELAY_MS = 1; // msec to wait between sending data
+const uint32_t TIMEOUT_MS = 1000; // maximum time (msec) to send no data
+const uint32_t TIMEOUT_LOOPS = TIMEOUT_MS / DELAY_MS;
+const byte SYNC = 255; // Special value to mark end of send
 
 enum Dir {
     NONE,
@@ -58,6 +60,8 @@ static struct button_t buttons[] = {
 //                     Sync       Encoder Offs    Encoder Btns Btns
 const byte PKT_BYTES = 1 + NBYTES(2 * NENCODERS + NENCODERS +  NBUTTONS);
 
+static uint32_t timer = 0;
+
 void setup() {
     for (byte i = 0; i < NENCODERS; i++) {
         pinMode(encoders[i].A, INPUT);
@@ -77,6 +81,8 @@ void loop() {
     bool pressed[NENCODERS + NBUTTONS];
     byte pkt[PKT_BYTES];
 
+    timer += 1;
+
     // Read encoder and button states
     for (byte i = 0; i < NENCODERS; i++) {
         offset[i] = readEncoder(&encoders[i]);
@@ -88,8 +94,7 @@ void loop() {
 
     // Build a packet
     memset(pkt, 0, PKT_BYTES);
-    pkt[0] = SYNC;
-    byte bit_off = 8;
+    byte bit_off = 0;
     // Two bits per encoder (00 = no change, 10 = left, 01 = right)
     for (byte i = 0; i < NENCODERS; i++, bit_off += 2) {
         byte idx = bit_off / 8;
@@ -117,15 +122,20 @@ void loop() {
     }
 
     // Only send up to the last non-zero byte
-    byte last_non_zero = PKT_BYTES - 1;
-    while (0 < last_non_zero && pkt[last_non_zero] == 0) {
+    byte last_non_zero = PKT_BYTES - 2;
+    while (last_non_zero < PKT_BYTES && pkt[last_non_zero] == 0) {
         last_non_zero -= 1;
     }
-    if (last_non_zero != 0) {
-        Serial.write(pkt, last_non_zero + 1);
+    if (last_non_zero < PKT_BYTES) {
+        timer = 0;
+        pkt[last_non_zero + 1] = SYNC;
+        Serial.write(pkt, last_non_zero + 2);
+    } else if (timer == TIMEOUT_LOOPS) {
+        timer = 0;
+        Serial.write(SYNC);
     }
 
-    delay(DELAY);
+    delay(DELAY_MS);
 }
 
 static enum Dir readEncoder(struct encoder_t *encoder) {

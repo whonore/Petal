@@ -279,6 +279,7 @@ Server.default.waitForBoot({
                         fx.set(ctrl.key, spec.map(spec.unmap(cur) + off));
                     })
                 };
+                ~serv.sync;
                 changed = true;
             });
 

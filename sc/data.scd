@@ -11,7 +11,7 @@
     var port;
     var parseData;
     var btnIdxs = (left: 0, right: 1, mute: 2);
-    var syncVal = 255; // Special value to mark start of send
+    var syncVal = 255; // Special value to mark end of send
     var synced = false;
 
     "common.scd".loadRelative(true);
