@@ -42,7 +42,7 @@ fxName -> (
     desc: "Simulates an old radio.",
     ctrls: [
         \noiseAmp -> (
-            name: "Noise Amplitude Multiplier",
+            name: "Noise Gain",
             spec: ControlSpec(0, 0.4, step: 0.01, default: 0.05, units: \pct)
         ),
         \noiseRate -> (

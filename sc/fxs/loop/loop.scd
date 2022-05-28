@@ -45,8 +45,8 @@ fxName -> (
             spec: ControlSpec(0, 1, step: 0.01, default: 0.2, units: \pct)
         ),
         \dur -> (
-            name: "Loop Duration",
-            spec: ControlSpec(0.1, 3, step: 0.01, default: 0.5, units: \sec)
+            name: "Loop Record Duration",
+            spec: ControlSpec(0.1, 3, step: 0.1, default: 0.5, units: \sec)
         ),
         \thresh -> (
             name: "Amplitude Cutoff",

@@ -41,11 +41,11 @@ fxName -> (
     ctrls: [
         \wobbleRate -> (
             name: "Wobble Rate",
-            spec: ControlSpec(0.01, 10, step: 0.01, default: 3, units: \hz)
+            spec: ControlSpec(0.01, 10, step: 0.1, default: 3, units: \hz)
         ),
         \bendDur -> (
             name: "Bend Duration",
-            spec: ControlSpec(0.1, 5, step: 0.01, default: 1, units: \sec)
+            spec: ControlSpec(0.1, 5, step: 0.1, default: 1, units: \sec)
         ),
         \wobble -> (
             name: "Wobble Amount",
@@ -53,7 +53,7 @@ fxName -> (
         ),
         \bend -> (
             name: "Bend Amount",
-            spec: ControlSpec(0, 10, step: 0.01, default: 2, units: \mult)
+            spec: ControlSpec(0, 10, step: 0.5, default: 2, units: \mult)
         )
     ]
 );

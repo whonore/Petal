@@ -50,15 +50,15 @@ fxName -> (
     ctrls: [
         \gain -> (
             name: "Gain",
-            spec: ControlSpec(1, 10, step: 0.05, default: 3, units: \mult)
+            spec: ControlSpec(1, 10, step: 0.1, default: 3, units: \mult)
         ),
         \dist -> (
             name: "Distortion Amount",
-            spec: ControlSpec(1, 10, step: 0.05, default: 2.5, units: \mult)
+            spec: ControlSpec(1, 10, step: 0.1, default: 2.5, units: \mult)
         ),
         \tone -> (
             name: "Tone (Low/High)",
-            spec: ControlSpec(-1, 1, step: 0.05, default: 0.3, units: \pct)
+            spec: ControlSpec(-1, 1, step: 0.01, default: 0.3, units: \pct)
         )
     ]
 );

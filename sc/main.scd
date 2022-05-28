@@ -274,7 +274,7 @@ Server.default.waitForBoot({
                     var step = spec.step * data.ctrlBtns.includes(idx).if({ bigStep }, { 1 });
                     var off = data.ctrlOffs[idx] * step;
                     fx.get(ctrl.key, {|cur|
-                        fx.set(ctrl.key, spec.map(spec.unmap(cur) + off));
+                        fx.set(ctrl.key, spec.constrain(cur + off));
                     })
                 };
                 ~serv.sync;

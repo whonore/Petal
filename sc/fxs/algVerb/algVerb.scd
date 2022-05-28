@@ -64,7 +64,7 @@ fxName -> (
         ),
         \size -> (
             name: "Room Size",
-            spec: ControlSpec(0, 1, step: 0.05, default: 0.5, units: \pct)
+            spec: ControlSpec(0, 1, step: 0.01, default: 0.5, units: \pct)
         )
     ]
 );

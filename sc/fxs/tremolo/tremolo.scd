@@ -27,7 +27,7 @@ fxName -> (
         ),
         \depth -> (
             name: "Depth",
-            spec: ControlSpec(0, 1, step: 0.05, default: 1, units: \pct)
+            spec: ControlSpec(0, 1, step: 0.01, default: 1, units: \pct)
         )
     ]
 );
