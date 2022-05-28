@@ -54,7 +54,7 @@ Server.default.waitForBoot({
 
     // SynthDef Init
     minFreq = 20;
-    maxFreq = 1000;
+    maxFreq = 3000;
     // Get the dry signal and track pitch and amplitude
     SynthDef(\dry, {|inbus=#[0, 1], outbus=0, volume=1|
         var in, freq, amp;
