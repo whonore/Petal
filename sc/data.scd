@@ -45,15 +45,16 @@
             mute: leftRightMute.includes(btnIdxs.mute),
             left: leftRightMute.includes(btnIdxs.left),
             right: leftRightMute.includes(btnIdxs.right),
-            idxs: btns,
+            curIdx: btns.maxItem,
             ctrlOffs: ctrlOffs,
             ctrlBtns: ctrlBtns
         );
     };
 
-    setLEDs = {|nfxs, idxs|
-        if (idxs.isEmpty.not, {
-            var vals = {|idx| idxs.includes(idx).if({ "1" }, { "0" }); } ! nfxs;
+    setLEDs = {|nfxs, curIdx|
+        if (curIdx.isNil.not, {
+            var vals = "0" ! nfxs;
+            vals[curIdx] = "1";
             ([ledScript] ++ vals).unixCmd(postOutput: false);
         });
     };
@@ -74,7 +75,7 @@
             data.add(byte);
         });
         parsed = parseData.value(data, nfxs, nctrls);
-        setLEDs.value(nfxs, parsed.idxs);
+        setLEDs.value(nfxs, parsed.curIdx);
         parsed;
     };
 

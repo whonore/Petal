@@ -259,14 +259,12 @@ Server.default.waitForBoot({
             };
 
             // Update current index
-            data.idxs.do {|idx|
-                if (idx != curIdx, {
-                    // Lock old current index
-                    locked[curIdx] = true;
-                    curIdx = idx;
-                    changed = true;
-                });
-            };
+            if (data.curIdx.isNil.not && (data.curIdx != curIdx), {
+                // Lock old current index
+                locked[curIdx] = true;
+                curIdx = data.curIdx;
+                changed = true;
+            });
 
             // Update if any control changed
             if (data.ctrlOffs.any {|x| x != 0; }, {
