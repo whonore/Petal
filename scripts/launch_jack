@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -euo pipefail
+
+CAP="USB Audio Device"
+PLAY="C-Media USB Headphone Set"
+
+CAPTURE=$(arecord -l | grep "$CAP" | cut -d' ' -f2 | sed -e 's/://')
+PLAYBACK=$(aplay -l | grep "$PLAY" | cut -d' ' -f2 | sed -e 's/://')
+
+/usr/bin/jackd -R -P75 -p16 -dalsa -Chw:$CAPTURE -Phw:$PLAYBACK -r44100 -p1024 -n3

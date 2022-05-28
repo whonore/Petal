@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -euo pipefail
+
+TOP="$( cd -- "$( dirname -- "${BASH_SOURCE[0]:-$0}"; )" &> /dev/null && pwd 2> /dev/null; )"/..;
+
+"$TOP"/scripts/launch_jack &
+sleep 1s
+"$TOP"/scripts/launch_sc &

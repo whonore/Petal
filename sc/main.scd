@@ -7,7 +7,7 @@
 */
 
 (
-~debug = true;
+~debug = false;
 
 Server.default.quit;
 Server.default.waitForBoot({
@@ -294,6 +294,10 @@ Server.default.waitForBoot({
 });
 );
 
-// For debugging
-SerialPort.closeAll;
-Window.closeAll;
+// Debugging cleanup
+(
+if (~debug, {
+    SerialPort.closeAll;
+    Window.closeAll;
+});
+)

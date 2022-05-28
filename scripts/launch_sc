@@ -1,0 +1,7 @@
+#!/bin/bash
+
+set -euo pipefail
+
+TOP="$( cd -- "$( dirname -- "${BASH_SOURCE[0]:-$0}"; )" &> /dev/null && pwd 2> /dev/null; )"/..;
+
+sclang "$TOP"/sc/main.scd
