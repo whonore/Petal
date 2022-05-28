@@ -96,7 +96,7 @@ Server.default.waitForBoot({
     // Display Init
     display = Window.new(
         "Petal", resizable: false, border: false, scroll: false
-    ).alwaysOnTop_(true);
+    ).bounds_(Window.availableBounds);
     labels = (
         muted: StaticText.new(),
         active: StaticText.new(),
