@@ -6,37 +6,42 @@
 ** Read sensor data.
 */
 
+
 // Only execute once
 ~data_loaded ?? {
     var port;
-    var parseData, setLEDs;
+    var parseInt, parseData, setLEDs;
     var ledScript = "../scripts/set_led.py".resolveRelative;
     var btnIdxs = (left: 0, right: 1, mute: 2);
     var syncVal = 255; // Special value to mark end of send
     var synced = false;
+    var maxInt8 = ((1 << 7) - 1).asInteger;
 
     "common.scd".loadRelative(true);
 
     // Serial Init
     ~initData = {
         var portName = "/dev/ttyS0";
-        port = SerialPort(portName, 19200, crtscts: true);
+        port = SerialPort(portName, 115200, crtscts: true);
         port;
+    };
+
+    parseInt = {|bitsBool|
+        var bits = bitsBool.reverse.collect {|bit| bit.if({ 1; }, { 0; }); };
+        var sign = bits[0];
+        var v = bits.drop(1).convertDigits(2);
+        // Extra +1 to account for negative offset (see readEncoderOff)
+        (sign == 1).if({(maxInt8 - v + 1).neg + 1; }, { v; });
     };
 
     parseData = {|raw, nfxs, nctrls|
         // Convert to bits
         var bits = raw.collect {|x| 8.collect {|bit| x.bitTest(bit); }; }.flatten;
         // Pad missing bits with 0
-        var nbits = (2 * nctrls) + nctrls + nfxs + 3;
+        var nbits = (8 * nctrls) + nctrls + nfxs + 3;
         var fullBits = bits ++ (false ! (nbits - bits.size));
-        var ctrlOffs = fullBits.keep(2 * nctrls).clump(2).collect {|xs| xs.switch(
-            [false, false], { 0 }, // No change
-            [false, true], { -1 }, // Left
-            [true, false], { 1 },  // Right
-            { "Invalid ctrlOff %".format(xs).error; }
-        )};
-        var btnBits = fullBits.drop(2 * nctrls);
+        var ctrlOffs = fullBits.keep(8 * nctrls).clump(8).collect {|xs| parseInt.value(xs); };
+        var btnBits = fullBits.drop(8 * nctrls);
         var ctrlBtns = btnBits.keep(nctrls).indicesOfEqual(true) ? [];
         var btns = btnBits.drop(nctrls).keep(nfxs).indicesOfEqual(true) ? [];
         var leftRightMute = btnBits.drop(nctrls + nfxs).indicesOfEqual(true) ? [];
