@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-CAP="USB Audio Device"
-PLAY="C-Media USB Headphone Set"
+CAP="USB Audio CODEC"
+PLAY="USB Audio CODEC"
 
 CAPTURE=$(arecord -l | grep "$CAP" | cut -d' ' -f2 | sed -e 's/://')
 PLAYBACK=$(aplay -l | grep "$PLAY" | cut -d' ' -f2 | sed -e 's/://')
