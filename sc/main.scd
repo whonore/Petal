@@ -16,7 +16,7 @@ Server.default.waitForBoot({
     var version;
     var nfxs, nctrls, bigStep, grp, fxs, fxInfo;
     var active;
-    var display, labels;
+    var titleFont, display, labels;
     var soundSrc, cycleActive, updateDisplay, debugLog, main;
 
     // Imports
@@ -96,30 +96,31 @@ Server.default.waitForBoot({
     ~serv.sync;
 
     // Display Init
+    Font.default = Font.new(Font.defaultSansFace, 32);
+    titleFont = Font.default.bold_(true);
     display = Window.new(
         "Petal", resizable: false, border: false, scroll: false
     ).bounds_(Window.availableBounds);
     labels = (
-        title: StaticText.new().string_("Petal (v%)".format(version)),
+        title: StaticText.new().string_("Petal (v%)".format(version)).font_(titleFont),
         muted: StaticText.new(),
         active: StaticText.new(),
-        ctrls: { (lbl: StaticText.new(), knob: Knob.new()) } ! nctrls,
+        ctrls: {(
+            lbl: StaticText.new().minWidth_(display.bounds.width),
+            knob: Knob.new().bounds_(100 @ 100)
+        )} ! nctrls,
     );
     display.layout = VLayout.new(
         [labels.title, align: \center],
         labels.muted,
-        labels.active,
-        [
-            VLayout.new(*labels.ctrls.collect({|ctrl|
-                HLayout.new(
-                    [ctrl.knob, align: \left],
-                    [ctrl.lbl, align: \left],
-                    [nil, stretch: 1]
-                )
-            })),
-            align: \center
-        ],
-        [nil, strech: 1]
+        [labels.active, stretch: 1],
+        5,
+        *labels.ctrls.collect({|ctrl|
+            HLayout.new(
+                ctrl.knob,
+                [ctrl.lbl, align: \left, stretch: 1]
+            )
+        })
     );
     display.front;
 
