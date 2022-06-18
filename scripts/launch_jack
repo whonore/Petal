@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+export XAUTHORITY=/home/pedal/.Xauthority
+export DISPLAY=:0
+
 CAP="USB Audio CODEC"
 PLAY="USB Audio CODEC"
 

@@ -1,0 +1,13 @@
+[Unit]
+Description=Jack server for Petal effects pedal
+Requires=display-manager.service
+After=display-manager.service
+
+[Service]
+Type=simple
+ExecStart=/home/pedal/Desktop/Petal/scripts/launch_jack
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+Alias=petal.jackd.service

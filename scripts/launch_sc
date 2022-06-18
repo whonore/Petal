@@ -4,4 +4,7 @@ set -euo pipefail
 
 TOP="$( cd -- "$( dirname -- "${BASH_SOURCE[0]:-$0}"; )" &> /dev/null && pwd 2> /dev/null; )"/..;
 
-sclang "$TOP"/sc/main.scd
+export XAUTHORITY=/home/pedal/.Xauthority
+export DISPLAY=:0
+
+sudo /usr/local/bin/sclang "$TOP"/sc/main.scd

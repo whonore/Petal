@@ -1,0 +1,14 @@
+[Unit]
+Description=Supercollider server for Petal effects pedal
+Requires=petal.jackd.service
+After=petal.jackd.service
+
+[Service]
+Type=simple
+ExecStart=/home/pedal/Desktop/Petal/scripts/launch_sc
+Restart=always
+User=pedal
+
+[Install]
+WantedBy=multi-user.target
+Alias=petal.sc.service

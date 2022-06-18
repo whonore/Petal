@@ -1,0 +1,11 @@
+[Unit]
+Description=Power button monitor
+
+[Service]
+Type=simple
+ExecStart=/home/pedal/Desktop/Petal/scripts/power.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+Alias=power.service
