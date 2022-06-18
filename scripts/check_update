@@ -2,14 +2,15 @@
 
 set -euo pipefail
 
-git fetch --quiet
-HEAD=$(git rev-parse HEAD)
-ORIGIN=$(git rev-parse origin)
+TOP="$( cd -- "$( dirname -- "${BASH_SOURCE[0]:-$0}"; )" &> /dev/null && pwd 2> /dev/null; )"/..;
+
+cd $TOP
+
+sudo -u pedal git fetch --quiet
+HEAD=$(sudo -u pedal git rev-parse HEAD)
+ORIGIN=$(sudo -u pedal git rev-parse origin)
 
 if [ "$HEAD" != "$ORIGIN" ]; then
-    sudo systemctl stop petal.sc
-    git pull
-    sudo systemctl start petal.sc
     exit 0
 else
     exit 1

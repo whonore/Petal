@@ -1,0 +1,10 @@
+#!/bin/bash
+
+set -euo pipefail
+
+TOP="$( cd -- "$( dirname -- "${BASH_SOURCE[0]:-$0}"; )" &> /dev/null && pwd 2> /dev/null; )"/..;
+
+cd $TOP
+
+sudo -u pedal git pull --ff-only || true
+sudo systemctl restart petal.sc

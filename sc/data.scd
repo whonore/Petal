@@ -6,13 +6,13 @@
 ** Read sensor data.
 */
 
-
 // Only execute once
 ~data_loaded ?? {
     var port;
-    var parseInt, parseData, setLEDs, checkUpdate;
+    var parseInt, parseData, setLEDs, doUpdate, noUpdate, checkUpdate;
     var ledScript = "../scripts/set_led.py".resolveRelative;
-    var updScript = "../scripts/check_update".resolveRelative;
+    var chkUpdScript = "../scripts/check_update".resolveRelative;
+    var doUpdScript = "../scripts/do_update".resolveRelative;
     var btnIdxs = (left: 0, right: 1, mute: 2);
     var syncVal = 255; // Special value to mark end of send
     var synced = false;
@@ -67,11 +67,33 @@
         });
     };
 
+    doUpdate = {
+        doUpdScript.unixCmd(postOutput: false);
+    };
+
+    noUpdate = {
+        {
+            var bounds = (400 @ 80).asRect.center_(Window.availableBounds.center);
+            var popup = Window.new(
+                "Update Message", bounds, resizable: false, border: false, scroll: false
+            );
+            var msg = StaticText.new(popup).string_("No available updates").align_(\center);
+            popup.layout = HLayout.new(msg);
+            popup.front;
+            {
+                popup.close();
+            }.defer(2);
+        }.defer;
+    };
+
     checkUpdate = {|parsed|
         (parsed.curIdx == updBtn).if({
             updCount = updCount + 1;
             if (updCount == 3, {
-                updScript.unixCmd(postOutput: false);
+                chkUpdScript.unixCmd(
+                    {|exit| if (exit == 0, { doUpdate.value(); }, { noUpdate.value(); }); },
+                    postOutput: false
+                );
                 updCount = 0;
             });
         }, {

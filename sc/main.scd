@@ -99,8 +99,8 @@ Server.default.waitForBoot({
     Font.default = Font.new(Font.defaultSansFace, 32);
     titleFont = Font.default.bold_(true);
     display = Window.new(
-        "Petal", resizable: false, border: false, scroll: false
-    ).bounds_(Window.availableBounds);
+        "Petal", Window.availableBounds, resizable: false, border: false, scroll: false
+    );
     labels = (
         title: StaticText.new().string_("Petal (v%)".format(version)).font_(titleFont),
         muted: StaticText.new(),
