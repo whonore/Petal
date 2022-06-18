@@ -10,11 +10,14 @@
 // Only execute once
 ~data_loaded ?? {
     var port;
-    var parseInt, parseData, setLEDs;
+    var parseInt, parseData, setLEDs, checkUpdate;
     var ledScript = "../scripts/set_led.py".resolveRelative;
+    var updScript = "../scripts/check_update".resolveRelative;
     var btnIdxs = (left: 0, right: 1, mute: 2);
     var syncVal = 255; // Special value to mark end of send
     var synced = false;
+    var updCount = 0;
+    var updBtn = 3;
     var maxInt8 = ((1 << 7) - 1).asInteger;
 
     "common.scd".loadRelative(true);
@@ -64,6 +67,18 @@
         });
     };
 
+    checkUpdate = {|parsed|
+        (parsed.curIdx == updBtn).if({
+            updCount = updCount + 1;
+            if (updCount == 3, {
+                updScript.unixCmd(postOutput: false);
+                updCount = 0;
+            });
+        }, {
+            updCount = 0;
+        });
+    };
+
     // Read messages from Arduino
     ~readData = {|nfxs, nctrls|
         var byte, parsed;
@@ -80,7 +95,10 @@
             data.add(byte);
         });
         parsed = parseData.value(data, nfxs, nctrls);
+
         setLEDs.value(nfxs, parsed.curIdx);
+        checkUpdate.value(parsed);
+
         parsed;
     };
 
