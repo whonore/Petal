@@ -13,6 +13,7 @@ Server.default.quit;
 Server.default.waitForBoot({
     var minFreq, maxFreq;
     var port;
+    var version;
     var nfxs, nctrls, bigStep, grp, fxs, fxInfo;
     var active;
     var display, labels;
@@ -22,6 +23,7 @@ Server.default.waitForBoot({
     "common.scd".loadRelative(true);
     "data.scd".loadRelative(true);
     #fxInfo, fxs = "fxs/loadFxs.scd".loadRelative(true)[0];
+    version = File.open("../VERSION".resolveRelative, "r").readAllString.replace("\n", "");
 
     // Initialize serial port
     port = ~initData.value();
@@ -98,11 +100,13 @@ Server.default.waitForBoot({
         "Petal", resizable: false, border: false, scroll: false
     ).bounds_(Window.availableBounds);
     labels = (
+        title: StaticText.new().string_("Petal (v%)".format(version)),
         muted: StaticText.new(),
         active: StaticText.new(),
         ctrls: { (lbl: StaticText.new(), knob: Knob.new()) } ! nctrls,
     );
     display.layout = VLayout.new(
+        [labels.title, align: \center],
         labels.muted,
         labels.active,
         [
