@@ -5,6 +5,10 @@ A software effects pedal using SuperCollider
 - [Configure Pi](https://madskjeldgaard.dk/posts/raspi4-notes/)
 - Install Arduino libraries
   - [Adafruit_Seesaw >= 1.6.2](https://github.com/adafruit/Adafruit_Seesaw)
+- [Install unclutter](https://sourceforge.net/projects/unclutter/)
+```sh
+sudo apt install unclutter
+```
 - Set activity light to GPIO4
 ```
 # /boot/config.txt

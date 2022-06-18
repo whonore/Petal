@@ -7,4 +7,6 @@ TOP="$( cd -- "$( dirname -- "${BASH_SOURCE[0]:-$0}"; )" &> /dev/null && pwd 2> 
 export XAUTHORITY=/home/pedal/.Xauthority
 export DISPLAY=:0
 
+/usr/bin/unclutter -idle 0 &
+
 sudo /usr/local/bin/sclang "$TOP"/sc/main.scd
