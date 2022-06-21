@@ -2,9 +2,9 @@
 
 set -euo pipefail
 
-TOP="$( cd -- "$( dirname -- "${BASH_SOURCE[0]:-$0}"; )" &> /dev/null && pwd 2> /dev/null; )"/..;
+TOP="$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" &>/dev/null && pwd 2>/dev/null)"/..
 
-cd $TOP
+cd "$TOP"
 
 sudo -u pedal git fetch --quiet
 HEAD=$(sudo -u pedal git rev-parse HEAD)

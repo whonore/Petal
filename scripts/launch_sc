@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-TOP="$( cd -- "$( dirname -- "${BASH_SOURCE[0]:-$0}"; )" &> /dev/null && pwd 2> /dev/null; )"/..;
+TOP="$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" &>/dev/null && pwd 2>/dev/null)"/..
 
 export XAUTHORITY=/home/pedal/.Xauthority
 export DISPLAY=:0

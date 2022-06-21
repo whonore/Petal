@@ -11,4 +11,4 @@ PLAY="USB Audio CODEC"
 CAPTURE=$(arecord -l | grep "$CAP" | cut -d' ' -f2 | sed -e 's/://')
 PLAYBACK=$(aplay -l | grep "$PLAY" | cut -d' ' -f2 | sed -e 's/://')
 
-/usr/bin/jackd -R -P75 -p16 -dalsa -Chw:$CAPTURE -Phw:$PLAYBACK -r44100 -p1024 -n3
+/usr/bin/jackd -R -P75 -p16 -dalsa -Chw:"$CAPTURE" -Phw:"$PLAYBACK" -r44100 -p1024 -n3
