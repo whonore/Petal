@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -euo pipefail
+
+TOP="$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" &>/dev/null && pwd 2>/dev/null)"/..
+
+for tmpl in "$TOP"/systemd/*.service.tmpl; do
+    service=${tmpl%.tmpl}
+    env TOP="$TOP" envsubst <"$tmpl" >"$service"
+    sudo ln -s "$service" /etc/systemd/system/"$(basename "$service")"
+    sudo systemctl enable "$(basename "$service")"
+done

@@ -1,6 +1,8 @@
 # Petal
 A software effects pedal using SuperCollider
 
+## Configure
+
 - [Configure Pi](https://madskjeldgaard.dk/posts/raspi4-notes/)
 ```
 ./scripts/configure_pi
@@ -11,7 +13,17 @@ A software effects pedal using SuperCollider
 ```
 - Install Arduino libraries
   - [Adafruit_Seesaw >= 1.6.2](https://github.com/adafruit/Adafruit_Seesaw)
-- Launch
+
+## Launch
+
+### Manual
+
 ```sh
 ./scripts/launch
+```
+
+### Automatic
+
+```sh
+./scripts/install_systemd
 ```
