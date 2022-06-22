@@ -1,0 +1,23 @@
+#!/bin/bash
+
+set -euo pipefail
+
+TOP="$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" &>/dev/null && pwd 2>/dev/null)"/..
+BUILD="$TOP/build"
+JOBS=$(nproc)
+
+mkdir -p "$BUILD"
+sudo apt install --yes --no-install-recommends \
+    libjack-jackd2-dev libsndfile1-dev libasound2-dev libavahi-client-dev \
+    libreadline-dev libfftw3-dev libxt-dev libudev-dev libncurses5-dev \
+    qttools5-dev qttools5-dev-tools qtbase5-dev libqt5svg5-dev qjackctl cmake
+
+cd "$BUILD"
+git clone --recurse-submodules https://github.com/supercollider/supercollider.git
+cd supercollider
+mkdir build && cd build
+cmake -DCMAKE_BUILD_TYPE=Release -DSUPERNOVA=OFF -DSC_ED=OFF -DSC_EL=OFF \
+    -DSC_VIM=OFF -DNATIVE=ON -DSC_USE_QTWEBENGINE:BOOL=OFF ..
+cmake --build . --config Release --target all -- -j"$JOBS"
+sudo cmake --build . --config Release --target install
+sudo ldconfig

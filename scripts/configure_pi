@@ -1,0 +1,44 @@
+#!/bin/bash
+# Source: https://gist.github.com/madskjeldgaard/c5731e95bc5be9b3e2789b14b1149b6e
+
+set -euo pipefail
+
+if grep -q act_led_gpio /boot/config.txt; then
+    echo "$0 is not safe to run twice"
+    exit 1
+fi
+
+# Install utils for cpu freq
+sudo apt-get install cpufrequtils
+sudo cpufreq-set -r -g performance
+sudo echo "ENABLE="true"
+GOVERNOR="performance"
+MAX_SPEED="0"
+MIN_SPEED="0" " | sudo tee -a /etc/default/cpufrequtils
+
+# Set CPU governor
+sudo sed -i 's/exit 0/sudo cpufreq-set -r -g performance/g' /etc/rc.local
+sudo echo "exit 0" | sudo tee -a /etc/rc.local
+
+# Set realtime priority and memlock
+sudo echo "
+@audio nice -15
+@audio - rtprio 90       # maximum realtime priority
+@audio - memlock unlimited  # maximum locked-in-memory address space (KB)
+" | sudo tee -a /etc/security/limits.conf
+
+# Set swappiness
+# This setting changes the so-called swappiness of your system,
+# or in other words, the moment when your system starts to use its swap partition.
+sudo echo "
+vm.swappiness = 10
+fs.inotify.max_user_watches = 524288
+" | sudo tee /etc/sysctl.conf
+
+# Hide the cursor when idle (https://sourceforge.net/projects/unclutter/)
+sudo apt install unclutter
+
+# Set activity light to use GPIO4
+sudo echo "dtparam=act_led_gpio=4" | sudo tee -a /boot/config.txt
+
+# TODO: enable ssh, serial port, disable serial console, disable screen blanking
