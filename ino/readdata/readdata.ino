@@ -50,8 +50,14 @@ static struct button_t buttons[] = {
 };
 #define NBUTTONS (sizeof(buttons) / sizeof(buttons[0]))
 
-//                     Sync       Encoder Offs        Encoder Btns Btns
-const byte PKT_BYTES = 1 + NBYTES(8 * NENCODERS + NENCODERS +  NBUTTONS);
+const byte PKT_BYTES =
+    1 // Sync
+    + NBYTES(
+        8 * NENCODERS  // Encoder offsets
+        + NENCODERS    // Encoder buttons held
+        + NBUTTONS     // Buttons pressed
+        + NBUTTONS     // Buttons held
+    );
 
 static uint32_t timer = 0;
 
@@ -73,7 +79,7 @@ void setup() {
 
 void loop() {
     int8_t offset[NENCODERS];
-    bool pressed[NENCODERS + NBUTTONS];
+    bool pressed[NENCODERS + 2 * NBUTTONS];
     byte pkt[PKT_BYTES];
 
     timer += 1;
@@ -85,6 +91,7 @@ void loop() {
     }
     for (byte i = 0; i < NBUTTONS; i++) {
         pressed[NENCODERS + i] = wasPressed(&buttons[i]);
+        pressed[NENCODERS + NBUTTONS + i] = isPressed(&buttons[i]);
     }
 
     // Build a packet
@@ -94,7 +101,7 @@ void loop() {
     memcpy(pkt, offset, NENCODERS);
     bit_off += 8 * NENCODERS;
     // One bit per button (0 = unpressed, 1 = pressed)
-    for (byte i = 0; i < NENCODERS + NBUTTONS; i++, bit_off += 1) {
+    for (byte i = 0; i < NENCODERS + 2 * NBUTTONS; i++, bit_off += 1) {
         byte idx = bit_off / 8;
         byte bit_idx = bit_off % 8;
         bitWrite(pkt[idx], bit_idx, pressed[i]);
@@ -139,6 +146,10 @@ static byte readButton(struct button_t *button) {
     byte st = digitalRead(button->pin);
     button->last = st;
     return st;
+}
+
+static bool isPressed(struct button_t *encoder) {
+    return readButton(encoder) == LOW;
 }
 
 static bool wasPressed(struct button_t *button) {

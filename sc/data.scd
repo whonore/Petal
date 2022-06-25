@@ -41,19 +41,24 @@
         // Convert to bits
         var bits = raw.collect {|x| 8.collect {|bit| x.bitTest(bit); }; }.flatten;
         // Pad missing bits with 0
-        var nbits = (8 * nctrls) + nctrls + nfxs + 3;
+        var nbits = (8 * nctrls) + nctrls + 2 * (nfxs + 3);
         var fullBits = bits ++ (false ! (nbits - bits.size));
         var ctrlOffs = fullBits.keep(8 * nctrls).clump(8).collect {|xs| parseInt.value(xs); };
         var btnBits = fullBits.drop(8 * nctrls);
         var ctrlBtns = btnBits.keep(nctrls).indicesOfEqual(true) ? [];
         var btns = btnBits.drop(nctrls).keep(nfxs).indicesOfEqual(true) ? [];
-        var leftRightMute = btnBits.drop(nctrls + nfxs).indicesOfEqual(true) ? [];
+        var leftRightMute = btnBits.drop(nctrls + nfxs).keep(3).indicesOfEqual(true) ? [];
+        var held = btnBits.drop(nctrls + nfxs + 3).keep(nfxs).indicesOfEqual(true) ? [];
+
+        // Swap if exactly two buttons are held and one was also pressed
+        var doSwap = (held.size == 2 && (held.any {|idx| btns.includes(idx); }));
 
         (
             mute: leftRightMute.includes(btnIdxs.mute),
             left: leftRightMute.includes(btnIdxs.left),
             right: leftRightMute.includes(btnIdxs.right),
-            curIdx: btns.maxItem,
+            curIdx: doSwap.not.if({ btns.maxItem; }, { nil; }),
+            swap: doSwap.if({ held; }, { nil; }),
             ctrlOffs: ctrlOffs,
             ctrlBtns: ctrlBtns
         );
