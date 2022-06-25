@@ -125,7 +125,7 @@ Server.default.waitForBoot({
     display.front;
 
     // Add xfade as a control to all fxs except dummy
-    fxInfo.do {|info, fx|
+    fxInfo.keysValuesDo {|fx, info|
         if (fx != \dummy, {
             info.ctrls = info.ctrls.addFirst(
                 \xfade -> (
