@@ -13,11 +13,11 @@
     var ledScript = "../scripts/set_led.py".resolveRelative;
     var chkUpdScript = "../scripts/check_update".resolveRelative;
     var doUpdScript = "../scripts/do_update".resolveRelative;
+    var updHeld = 3; // Rightmost idx button
+    var updBtn = 4;  // Rightmost ctrl button
     var btnIdxs = (left: 0, right: 1, mute: 2);
     var syncVal = 255; // Special value to mark end of send
     var synced = false;
-    var updCount = 0;
-    var updBtn = 3;
     var maxInt8 = ((1 << 7) - 1).asInteger;
 
     "common.scd".loadRelative(true);
@@ -51,16 +51,21 @@
         var held = btnBits.drop(nctrls + nfxs + 3).keep(nfxs).indicesOfEqual(true) ? [];
 
         // Swap if exactly two buttons are held and one was also pressed
-        var doSwap = (held.size == 2 && (held.any {|idx| btns.includes(idx); }));
+        var swap = (held.size == 2 && (held.any {|idx| btns.includes(idx); }));
+
+        // Check for updates if rightmost idx button is held and rightmost ctrl
+        // button is pressed
+        var update = (held.includes(updHeld) && (ctrlBtns.includes(updBtn)));
 
         (
             mute: leftRightMute.includes(btnIdxs.mute),
             left: leftRightMute.includes(btnIdxs.left),
             right: leftRightMute.includes(btnIdxs.right),
-            curIdx: doSwap.not.if({ btns.maxItem; }, { nil; }),
-            swap: doSwap.if({ held; }, { nil; }),
+            curIdx: swap.not.if({ btns.maxItem; }, { nil; }),
+            swap: swap.if({ held; }, { nil; }),
             ctrlOffs: ctrlOffs,
-            ctrlBtns: ctrlBtns
+            ctrlBtns: ctrlBtns,
+            doUpdate: update,
         );
     };
 
@@ -91,19 +96,11 @@
         }.defer;
     };
 
-    checkUpdate = {|parsed|
-        (parsed.curIdx == updBtn).if({
-            updCount = updCount + 1;
-            if (updCount == 3, {
-                chkUpdScript.unixCmd(
-                    {|exit| if (exit == 0, { doUpdate.value(); }, { noUpdate.value(); }); },
-                    postOutput: false
-                );
-                updCount = 0;
-            });
-        }, {
-            updCount = 0;
-        });
+    checkUpdate = {
+        chkUpdScript.unixCmd(
+            {|exit| if (exit == 0, { doUpdate.value(); }, { noUpdate.value(); }); },
+            postOutput: false
+        );
     };
 
     // Read messages from Arduino
@@ -124,7 +121,7 @@
         parsed = parseData.value(data, nfxs, nctrls);
 
         setLEDs.value(nfxs, parsed.curIdx);
-        checkUpdate.value(parsed);
+        if (parsed.doUpdate, { checkUpdate.value(); });
 
         parsed;
     };
