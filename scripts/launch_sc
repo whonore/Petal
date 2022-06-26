@@ -9,4 +9,5 @@ export DISPLAY=:0
 
 /usr/bin/unclutter -idle 0 &
 
+sudo /usr/bin/jack_wait --wait
 sudo /usr/local/bin/sclang "$TOP"/sc/main.scd

@@ -2,11 +2,13 @@
 Description=Jack server for Petal effects pedal
 Requires=display-manager.service
 After=display-manager.service
+StartLimitIntervalSec=0
 
 [Service]
-Type=simple
+Type=exec
 ExecStart=$TOP/scripts/launch_jack
 Restart=always
+TimeoutStopSec=1
 
 [Install]
 WantedBy=multi-user.target
