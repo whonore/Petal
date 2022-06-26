@@ -174,49 +174,14 @@ Server.default.waitForBoot({
 
     // Swap two fxs
     swapActive = {|fromIdx, toIdx|
-        var fromFxName = active[fromIdx].defName;
-        var toFxName = active[toIdx].defName;
-        var oldFromFx = active[fromIdx].copy;
-        var fromCtrls = IdentityDictionary.new();
-        var toCtrls = IdentityDictionary.new();
-        fxInfo[fromFxName].ctrls.do {|ctrl|
-            active[fromIdx].get(ctrl.key, {|val|
-                fromCtrls[ctrl.key] = val;
-            });
-        };
-        fxInfo[toFxName].ctrls.do {|ctrl|
-            active[toIdx].get(ctrl.key, {|val|
-                toCtrls[ctrl.key] = val;
-            });
-        };
-
-        // Wait to read the controls
-        block {|break|
-            var retries = 3;
-            retries.do{|i|
-                if (fromCtrls.keys.size == fxInfo[fromFxName].ctrls.size &&
-                    (toCtrls.keys.size == fxInfo[toFxName].ctrls.size), {
-                    break.value();
-                });
-                ~serv.sync;
-            };
-            "Failed to read controls after % attemps".format(retries).warn;
-        };
-
-        active[fromIdx] = Synth.replace(
-            active[toIdx],
-            toFxName,
-            fxInfo[toFxName].ctrls.collect {|ctrl|
-                [ctrl.key, toCtrls[ctrl.key]]
-            }.flat,
-        );
-        active[toIdx] = Synth.replace(
-            oldFromFx,
-            fromFxName,
-            fxInfo[fromFxName].ctrls.collect {|ctrl|
-                [ctrl.key, fromCtrls[ctrl.key]]
-            }.flat,
-        );
+        var fromFx = active[fromIdx];
+        var toFx = active[toIdx];
+        // Dry is at the end so if idx = 0, idx - 1 will wrap to the end
+        var preFromFx = active.wrapAt(fromIdx - 1);
+        var preToFx = active.wrapAt(toIdx - 1);
+        if (toFx != preFromFx, { toFx.moveAfter(preFromFx); });
+        if (fromFx != preToFx, { fromFx.moveAfter(preToFx); });
+        active = active.swap(fromIdx, toIdx);
     };
 
     updateDisplay = {|curIdx, muted, active, fxInfo, locked|
