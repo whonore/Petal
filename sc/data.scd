@@ -9,12 +9,15 @@
 // Only execute once
 ~data_loaded ?? {
     var port;
-    var parseInt, parseData, setLEDs, doUpdate, noUpdate, checkUpdate;
+    var parseInt, parseData, setLEDs, showPopup, doUpdate, checkUpdate, showIP;
     var ledScript = "../scripts/set_led.py".resolveRelative;
+    var ipScript = "../scripts/get_ip".resolveRelative;
     var chkUpdScript = "../scripts/check_update".resolveRelative;
     var doUpdScript = "../scripts/do_update".resolveRelative;
     var updHeld = 3; // Rightmost idx button
     var updBtn = 4;  // Rightmost ctrl button
+    var ipBtn = 3;
+    var checking = false; // Currently checking for updates
     var btnIdxs = (left: 0, right: 1, mute: 2);
     var syncVal = 255; // Special value to mark end of send
     var synced = false;
@@ -57,6 +60,8 @@
         // button is pressed
         var update = (held.includes(updHeld) && (ctrlBtns.includes(updBtn)));
 
+        var ip = (held.includes(updHeld) && (ctrlBtns.includes(ipBtn)));
+
         (
             mute: leftRightMute.includes(btnIdxs.mute),
             left: leftRightMute.includes(btnIdxs.left),
@@ -66,6 +71,7 @@
             ctrlOffs: ctrlOffs,
             ctrlBtns: ctrlBtns,
             doUpdate: update,
+            ip: ip,
         );
     };
 
@@ -81,26 +87,37 @@
         doUpdScript.unixCmd(postOutput: false);
     };
 
-    noUpdate = {
+    showPopup = {|msg, delay|
         {
-            var bounds = (400 @ 80).asRect.center_(Window.availableBounds.center);
+            var bounds = (400 @ 100).asRect.center_(Window.availableBounds.center);
             var popup = Window.new(
                 "Update Message", bounds, resizable: false, border: false, scroll: false
             );
-            var msg = StaticText.new(popup).string_("No available updates").align_(\center);
-            popup.layout = HLayout.new(msg);
+            popup.layout = HLayout.new(StaticText.new(popup).string_(msg).align_(\center));
             popup.front;
             {
                 popup.close();
-            }.defer(2);
+                checking = false;
+            }.defer(delay);
         }.defer;
     };
 
     checkUpdate = {
+        checking = true;
         chkUpdScript.unixCmd(
-            {|exit| if (exit == 0, { doUpdate.value(); }, { noUpdate.value(); }); },
+            {|exit| if (exit == 0, {
+                doUpdate.value();
+            }, {
+                showPopup.value("No available updates", 2);
+            }); },
             postOutput: false
         );
+    };
+
+    showIP = {
+        var ip = ipScript.unixCmdGetStdOut();
+        checking = true;
+        showPopup.value(ip.isEmpty.if({ "No IP"; }, { "IP: %".format(ip); }), 2);
     };
 
     // Read messages from Arduino
@@ -121,7 +138,8 @@
         parsed = parseData.value(data, nfxs, nctrls);
 
         setLEDs.value(nfxs, parsed.curIdx);
-        if (parsed.doUpdate, { checkUpdate.value(); });
+        if (parsed.doUpdate && checking.not, { checkUpdate.value(); });
+        if (parsed.ip && checking.not, { showIP.value(); });
 
         parsed;
     };

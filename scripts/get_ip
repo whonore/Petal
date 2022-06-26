@@ -1,0 +1,5 @@
+#!/bin/bash
+
+set -euo pipefail
+
+ip -oneline -4 address show dev eth0 | awk -F ' *|/' '{print $4}'
