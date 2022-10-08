@@ -24,7 +24,7 @@ var fxOrder = [
 
 // Load all fxs and get the mappings from fxName to ControlSpecs
 var fxInfo = IdentityDictionary.with(*"*/*.scd".resolveRelative.loadPaths(true, {|fx|
-    ("Loading " + fx).postln;
+    ("Loading " ++ fx).postln;
 }));
 
 // Order by fxOrder
