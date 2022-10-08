@@ -22,6 +22,7 @@ Server.default.waitForBoot({
     // Imports
     "common.scd".loadRelative(true);
     "data.scd".loadRelative(true);
+    "save.scd".loadRelative(true);
     #fxInfo, fxs = "fxs/loadFxs.scd".loadRelative(true)[0];
     version = File.open("../VERSION".resolveRelative, "r").readAllString.replace("\n", "");
 
@@ -245,6 +246,7 @@ Server.default.waitForBoot({
         var avail = true ! fxs.size;
         var locked = false ! nfxs;
 
+        ~loadFx.value(nfxs, active);
         updateDisplay.value(curIdx, muted, active, fxInfo, locked);
         loop {
             var fx, fxName;
@@ -309,6 +311,9 @@ Server.default.waitForBoot({
                 updateDisplay.value(curIdx, muted, active, fxInfo, locked);
                 // debugLog.value(curIdx, muted, active, fxInfo, locked);
             });
+
+            // Autosave the current settings
+            ~saveFx.value(~serv, grp);
         };
     };
 
