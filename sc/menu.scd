@@ -10,7 +10,7 @@
 ~menu_loaded ?? {
     var profiles, profileIdx;
     var menu, profileList, labels;
-    var curProfile, selectProfile, actProfile, updateMenu;
+    var promptName, curProfile, selectProfile, actProfile, updateMenu;
 
     "common.scd".loadRelative(true);
 
@@ -35,6 +35,95 @@
         ),
         profileList,
     );
+
+    promptName = {|nfxs, nctrls|
+        var name = nil;
+        var quit = false;
+        var cancel = false;
+        var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        var nameBuf = [chars[0]];
+        var cursorIdx = 0;
+        var charIdx = 0;
+        var deleteHack = false;
+        var deleteHackDelay = 0.3; // 300ms
+        var popup, label;
+
+        var updateLabel = {
+            {
+                label.string = nameBuf.join("");
+                label.select(cursorIdx, 1);
+            }.defer;
+        };
+
+        {
+            var bounds = (800 @ 250).asRect.center_(Window.availableBounds.center);
+            popup = Window.new(
+                "Update Message", bounds, resizable: false, border: false, scroll: false
+            );
+            label = TextView.new();
+            popup.layout = VLayout.new(
+                HLayout.new(
+                    StaticText.new().string_("Turn any knob:\nSelect letter"),
+                    StaticText.new().string_("Click any knob:\nDelete letter"),
+                    StaticText.new().string_("Left/right button:\nMove cursor"),
+                    StaticText.new().string_("Any button:\nConfirm"),
+                    StaticText.new().string_("Stomp:\nCancel"),
+                ),
+                label,
+            );
+            popup.front;
+        }.defer;
+
+        updateLabel.value();
+        while ({ quit.not; }, {
+            var data = ~readData.value(nfxs, nctrls);
+
+            // Move cursor
+            if ((data.left || data.right), {
+                var off = data.left.if({ -1 }, { 1 });
+                cursorIdx = (cursorIdx + off).clip(0, nameBuf.size);
+                if (cursorIdx == nameBuf.size, {
+                    nameBuf = nameBuf.add(chars[0]);
+                });
+                charIdx = chars.detectIndex {|c| c == nameBuf[cursorIdx]; };
+                updateLabel.value();
+            });
+
+            // Change character selection
+            if (data.ctrlOffs.any {|x| x != 0; }, {
+                var ctrl = data.ctrlOffs.detect {|x| x != 0; };
+                var off = (ctrl > 0).if({ 1; }, { -1; });
+                charIdx = (charIdx + off) % chars.size;
+                nameBuf[cursorIdx] = chars[charIdx];
+                updateLabel.value();
+            });
+
+            // Delete character
+            if (data.ctrlBtns.isEmpty.not && (1 < nameBuf.size) && deleteHack.not, {
+                nameBuf.removeAt(cursorIdx);
+                cursorIdx = (cursorIdx - 1).clip(0, nameBuf.size);
+                charIdx = chars.detectIndex {|c| c == nameBuf[cursorIdx]; };
+                updateLabel.value();
+                { deleteHack = false; }.defer(deleteHackDelay);
+            });
+            // NOTE: hack to require knob to released between deletions
+            deleteHack = data.ctrlBtns.isEmpty.not;
+
+            // Confirm
+            if (data.curIdx.notNil, {
+                quit = true;
+            });
+
+            // Cancel
+            cancel = data.mute;
+
+            quit = quit || cancel;
+        });
+
+        { popup.close; }.defer;
+
+        (cancel || (nameBuf.size == 0)).if({ nil; }, { nameBuf.join(""); });
+    };
 
     curProfile = {
         case
@@ -77,8 +166,10 @@
             \new, {
                 btn.switch(
                     0, {
-                        var name = "TEMP";
-                        save.value(name);
+                        var name = promptName.value(nfxs, nctrls);
+                        if (name.notNil, {
+                            save.value(name);
+                        });
                     },
                     { },
                 );
