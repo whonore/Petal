@@ -147,9 +147,13 @@
     };
 
     // Delete effect settings
-    ~deleteProfile = {|name|
-        var to = profilePath.value(profileName.value(from), deleted: true);
-        moveFile.value(from, to);
+    ~deleteProfile = {|from, keep=true|
+        if (keep, {
+            var to = profilePath.value(profileName.value(from), deleted: true);
+            moveFile.value(from, to);
+        }, {
+            File.delete(from);
+        });
     };
 
     // Restore deleted effect settings
