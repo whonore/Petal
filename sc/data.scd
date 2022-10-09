@@ -17,6 +17,8 @@
     var updHeld = 3; // Rightmost idx button
     var updBtn = 4;  // Rightmost ctrl button
     var ipBtn = 3;
+    var menuHeld = 0;
+    var menuBtn = 0;
     var checking = false; // Currently checking for updates
     var btnIdxs = (left: 0, right: 1, mute: 2);
     var syncVal = 255; // Special value to mark end of send
@@ -58,9 +60,11 @@
 
         // Check for updates if rightmost idx button is held and rightmost ctrl
         // button is pressed
-        var update = (held.includes(updHeld) && (ctrlBtns.includes(updBtn)));
+        var update = held.includes(updHeld) && ctrlBtns.includes(updBtn);
 
-        var ip = (held.includes(updHeld) && (ctrlBtns.includes(ipBtn)));
+        var ip = held.includes(updHeld) && ctrlBtns.includes(ipBtn);
+
+        var menu = held.includes(menuHeld) && ctrlBtns.includes(menuBtn);
 
         (
             mute: leftRightMute.includes(btnIdxs.mute),
@@ -72,6 +76,7 @@
             ctrlBtns: ctrlBtns,
             doUpdate: update,
             ip: ip,
+            menu: menu,
         );
     };
 

@@ -23,6 +23,7 @@ Server.default.waitForBoot({
     "common.scd".loadRelative(true);
     "data.scd".loadRelative(true);
     "save.scd".loadRelative(true);
+    "menu.scd".loadRelative(true);
     #fxInfo, fxs = "fxs/loadFxs.scd".loadRelative(true)[0];
     version = File.open("../VERSION".resolveRelative, "r").readAllString.replace("\n", "");
 
@@ -287,6 +288,12 @@ Server.default.waitForBoot({
                     })
                 };
                 ~serv.sync;
+                changed = true;
+            });
+
+            // Open menu
+            if (data.menu, {
+                ~menuMain.value(~serv, grp, active, nfxs, nctrls);
                 changed = true;
             });
 
