@@ -90,6 +90,7 @@
         serv.sendMsg("/g_queryTree", grp.nodeID, 1);
     };
 
+    // Load effect settings
     ~loadFx = {|nfxs, active|
         var fxs = loadData.value(autoSave);
         if (fxs.notNil, {
