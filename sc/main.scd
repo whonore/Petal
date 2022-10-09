@@ -290,13 +290,11 @@ Server.default.waitForBoot({
                 changed = true;
             });
 
-            // Log new values
+            // Log and save new values
             if (changed, {
                 updateDisplay.value(curIdx, muted, active, fxInfo, locked);
+                ~saveFx.value(~serv, grp);
             });
-
-            // Autosave the current settings
-            ~saveFx.value(~serv, grp);
         };
     };
 
