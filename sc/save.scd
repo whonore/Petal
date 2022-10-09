@@ -10,7 +10,8 @@
 ~save_loaded ?? {
     var initXDG;
     var moveFile;
-    var profilePath, buildProfile, serializeProfile, deserializeProfile;
+    var profilePath, profileName, profileTime;
+    var buildProfile, serializeProfile, deserializeProfile;
     var tmpDir, stateDir, profileDir, trashDir, autoSave;
 
     "common.scd".loadRelative(true);
@@ -50,9 +51,18 @@
     };
 
     profilePath = {|name, deleted=false|
+        var time = Date.localtime.stamp;
         name !? {
-            deleted.if({ trashDir; }, { profileDir; }) +/+ name ++ ".ptl";
+            deleted.if({ trashDir; }, { profileDir; }) +/+ "%-%.ptl".format(time, name);
         } ? autoSave;
+    };
+
+    profileName = {|path|
+        PathName.new(path).fileNameWithoutExtension.split($-)[1];
+    };
+
+    profileTime = {|path|
+        PathName.new(path).fileNameWithoutExtension.split($-)[0];
     };
 
     buildProfile = {|msg|
@@ -118,8 +128,8 @@
     };
 
     // Load effect settings
-    ~loadProfile = {|nfxs, active, name=nil|
-        var file = profilePath.value(name);
+    ~loadProfile = {|nfxs, active, path=nil|
+        var file = path ? autoSave;
         var fxs = deserializeProfile.value(file);
         if (fxs.notNil, {
             active.keep(nfxs).do {|oldFx, idx|
@@ -134,23 +144,28 @@
 
     // Delete effect settings
     ~deleteProfile = {|name|
-        var from = profilePath.value(name);
-        var to = profilePath.value(name, deleted: true);
+        var to = profilePath.value(profileName.value(from), deleted: true);
         moveFile.value(from, to);
     };
 
     // Restore deleted effect settings
-    ~restoreProfile = {|name|
-        var from = profilePath.value(name, deleted: true);
-        var to = profilePath.value(name);
+    ~restoreProfile = {|from|
+        var to = profilePath.value(profileName.value(from));
         moveFile.value(from, to, overwrite: false);
     };
 
     ~listProfiles = {
         var process = {|paths|
             paths.sort {|x, y|
-                File.mtime(x) > File.mtime(y);
-            }.collect {|path| path.fileNameWithoutExtension; };
+                x.fullPath > y.fullPath;
+            }.collect {|path|
+                var file = path.fullPath;
+                (
+                    name: profileName.value(file),
+                    time: profileTime.value(file),
+                    path: file,
+                )
+            };
         };
 
         var saved = process.value(PathName.new(profileDir).files);
