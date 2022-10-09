@@ -28,7 +28,7 @@
     ("Runtime directory: " ++ tmpDir).postln;
     ("State directory: " ++ stateDir).postln;
 
-    autoSave = stateDir +/+ "auto.ptl";
+    autoSave = stateDir +/+ ".auto.ptl";
 
     parseData = {|msg|
         // msg = [_, _, grpID, nfx, fxID, _, fxName, nctrls, ctrlName, ctrlVal, ...]
@@ -47,9 +47,10 @@
         fxs.drop(1); // Skip dry signal
     };
 
-    saveData = {|msg|
+    saveData = {|msg, name|
         var fxs = parseData.value(msg);
-        File.use(autoSave, "w", {|f|
+        var file = name !? { stateDir +/+ name ++ ".ptl"; } ? autoSave;
+        File.use(file, "w", {|f|
             fxs.do {|fx|
                 var repr = fx.collect {|field, idx|
                     (0 < idx).if({ ">" ++ field.join(","); }, { field; });
@@ -81,11 +82,11 @@
     };
 
     // Save effect settings
-    ~saveFx = {|serv, grp|
+    ~saveFx = {|serv, grp, name=nil|
         // NOTE: grp.queryTree should work, but for some reason it ignores the
         // callback and just works like dumpTree.
         // Register queryTree callback
-        OSCFunc.new({|msg| saveData.value(msg); }, '/g_queryTree.reply').oneShot;
+        OSCFunc.new({|msg| saveData.value(msg, name); }, '/g_queryTree.reply').oneShot;
         serv.sendMsg("/g_queryTree", grp.nodeID, 1);
     };
 
