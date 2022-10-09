@@ -230,7 +230,7 @@ Server.default.waitForBoot({
         var avail = true ! fxs.size;
         var locked = false ! nfxs;
 
-        ~loadFx.value(nfxs, active);
+        ~loadProfile.value(nfxs, active);
         updateDisplay.value(curIdx, muted, active, fxInfo, locked);
         loop {
             var fx, fxName;
@@ -293,7 +293,7 @@ Server.default.waitForBoot({
             // Log and save new values
             if (changed, {
                 updateDisplay.value(curIdx, muted, active, fxInfo, locked);
-                ~saveFx.value(~serv, grp);
+                ~saveProfile.value(~serv, grp);
             });
         };
     };

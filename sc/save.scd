@@ -9,9 +9,8 @@
 // Only execute once
 ~save_loaded ?? {
     var initXDG;
-    var parseData, saveData;
-    var loadData;
-    var tmpDir, stateDir, autoSave;
+    var profilePath, buildProfile, serializeProfile, deserializeProfile;
+    var tmpDir, stateDir, profileDir, autoSave;
 
     "common.scd".loadRelative(true);
 
@@ -25,12 +24,18 @@
     // Initialize directories
     tmpDir = initXDG.value("XDG_RUNTIME_DIR", PathName.tmp);
     stateDir = initXDG.value("XDG_STATE_DIR", "~/.local/state".standardizePath);
+    profileDir = stateDir +/+ "profiles";
+    profileDir.mkdir;
     ("Runtime directory: " ++ tmpDir).postln;
     ("State directory: " ++ stateDir).postln;
 
-    autoSave = stateDir +/+ ".auto.ptl";
+    autoSave = profileDir +/+ ".auto.ptl";
 
-    parseData = {|msg|
+    profilePath = {|name|
+        name !? { profileDir +/+ name ++ ".ptl"; } ? autoSave;
+    };
+
+    buildProfile = {|msg|
         // msg = [_, _, grpID, nfx, fxID, _, fxName, nctrls, ctrlName, ctrlVal, ...]
         var totCtrls = 0;
         var nfx = msg[3];
@@ -43,24 +48,19 @@
             }.flatten.separate {|x, y| y.isNumber.not; };
             totCtrls = totCtrls + nctrls;
             [fxName] ++ ctrls;
-        });
-        fxs.drop(1); // Skip dry signal
+        }).drop(1); // Skip dry signal
+        fxs;
     };
 
-    saveData = {|msg, name|
-        var fxs = parseData.value(msg);
-        var file = name !? { stateDir +/+ name ++ ".ptl"; } ? autoSave;
-        File.use(file, "w", {|f|
-            fxs.do {|fx|
-                var repr = fx.collect {|field, idx|
-                    (0 < idx).if({ ">" ++ field.join(","); }, { field; });
-                }.join("|");
-                f.write(repr + "\n");
-            };
-        });
+    serializeProfile = {|fxs|
+        fxs.collect {|fx|
+            fx.collect {|field, idx|
+                (0 < idx).if({ ">" ++ field.join(","); }, { field; });
+            }.join("|");
+        }.join("\n");
     };
 
-    loadData = {|file|
+    deserializeProfile = {|file|
         var parse = {|data|
             data.beginsWith(">").if({
                 data.drop(1).split($,).collect {|subData| parse.value(subData); };
@@ -72,6 +72,7 @@
                 });
             });
         };
+
         PathName.new(file).isFile.if({
             FileReader.read(file, delimiter: $|).collect {|row|
                 row.collect {|field| parse.value(field); }
@@ -82,17 +83,24 @@
     };
 
     // Save effect settings
-    ~saveFx = {|serv, grp, name=nil|
+    ~saveProfile = {|serv, grp, name=nil|
+        var save = {|msg|
+            var fxs = buildProfile.value(msg);
+            var file = profilePath.value(name);
+            File.use(file, "w", {|f| f.write(serializeProfile.value(fxs)); });
+        };
+
         // NOTE: grp.queryTree should work, but for some reason it ignores the
         // callback and just works like dumpTree.
         // Register queryTree callback
-        OSCFunc.new({|msg| saveData.value(msg, name); }, '/g_queryTree.reply').oneShot;
+        OSCFunc.new({|msg| save.value(msg); }, '/g_queryTree.reply').oneShot;
         serv.sendMsg("/g_queryTree", grp.nodeID, 1);
     };
 
     // Load effect settings
-    ~loadFx = {|nfxs, active|
-        var fxs = loadData.value(autoSave);
+    ~loadProfile = {|nfxs, active, name=nil|
+        var file = profilePath.value(name);
+        var fxs = deserializeProfile.value(file);
         if (fxs.notNil, {
             active.keep(nfxs).do {|oldFx, idx|
                 var fxName = fxs[idx][0];
