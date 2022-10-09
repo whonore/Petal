@@ -113,11 +113,14 @@
     };
 
     // Save effect settings
-    ~saveProfile = {|serv, grp, name=nil|
+    ~saveProfile = {|serv, grp, name=nil, sync=false|
+        var done = Condition.new(false);
         var save = {|msg|
             var fxs = buildProfile.value(msg);
             var file = profilePath.value(name);
             File.use(file, "w", {|f| f.write(serializeProfile.value(fxs)); });
+            done.test = true;
+            done.signal;
         };
 
         // NOTE: grp.queryTree should work, but for some reason it ignores the
@@ -125,6 +128,7 @@
         // Register queryTree callback
         OSCFunc.new({|msg| save.value(msg); }, '/g_queryTree.reply').oneShot;
         serv.sendMsg("/g_queryTree", grp.nodeID, 1);
+        if (sync, { done.wait; });
     };
 
     // Load effect settings
