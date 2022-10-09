@@ -9,8 +9,9 @@
 // Only execute once
 ~save_loaded ?? {
     var initXDG;
+    var moveFile;
     var profilePath, buildProfile, serializeProfile, deserializeProfile;
-    var tmpDir, stateDir, profileDir, autoSave;
+    var tmpDir, stateDir, profileDir, trashDir, autoSave;
 
     "common.scd".loadRelative(true);
 
@@ -26,13 +27,32 @@
     stateDir = initXDG.value("XDG_STATE_DIR", "~/.local/state".standardizePath);
     profileDir = stateDir +/+ "profiles";
     profileDir.mkdir;
+    trashDir = tmpDir +/+ "profiles";
+    trashDir.mkdir;
     ("Runtime directory: " ++ tmpDir).postln;
     ("State directory: " ++ stateDir).postln;
 
     autoSave = profileDir +/+ ".auto.ptl";
 
-    profilePath = {|name|
-        name !? { profileDir +/+ name ++ ".ptl"; } ? autoSave;
+    moveFile = {|from, to, overwrite=true|
+        if (File.exists(to), {
+            if (overwrite, {
+                File.delete(to);
+            }, {
+                var path = PathName.new(to);
+                var name = PathName.new(path.fileNameWithoutExtension).nextName;
+                to = path.pathOnly +/+ name ++ "." ++ path.extension;
+            });
+        });
+
+        File.copy(from, to);
+        File.delete(from);
+    };
+
+    profilePath = {|name, deleted=false|
+        name !? {
+            deleted.if({ trashDir; }, { profileDir; }) +/+ name ++ ".ptl";
+        } ? autoSave;
     };
 
     buildProfile = {|msg|
@@ -110,6 +130,32 @@
                 active[idx] = Synth.replace(oldFx, fxName, ctrls);
             };
         });
+    };
+
+    // Delete effect settings
+    ~deleteProfile = {|name|
+        var from = profilePath.value(name);
+        var to = profilePath.value(name, deleted: true);
+        moveFile.value(from, to);
+    };
+
+    // Restore deleted effect settings
+    ~restoreProfile = {|name|
+        var from = profilePath.value(name, deleted: true);
+        var to = profilePath.value(name);
+        moveFile.value(from, to, overwrite: false);
+    };
+
+    ~listProfiles = {
+        var process = {|paths|
+            paths.sort {|x, y|
+                File.mtime(x) > File.mtime(y);
+            }.collect {|path| path.fileNameWithoutExtension; };
+        };
+
+        var saved = process.value(PathName.new(profileDir).files);
+        var deleted = process.value(PathName.new(trashDir).files);
+        (saved: saved, deleted: deleted);
     };
 
     ~save_loaded = true;
