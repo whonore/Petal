@@ -254,12 +254,12 @@ Server.default.waitForBoot({
             });
 
             // Change fx
-            if (data.left || data.right) {
+            if ((data.left || data.right), {
                 fx = cycleActive.value(
                     fxName, curIdx, avail, data.left.if({ -1 }, { 1 })
                 );
                 changed = true;
-            };
+            });
 
             // Update current index
             if (data.curIdx.isNil.not && (data.curIdx != curIdx), {
