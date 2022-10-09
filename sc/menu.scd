@@ -28,10 +28,10 @@
     menu.layout = VLayout.new(
         [labels.title, align: \center],
         HLayout.new(
-            labels.exit,
             labels.save,
             labels.load,
             labels.delete,
+            labels.exit,
         ),
         profileList,
     );
