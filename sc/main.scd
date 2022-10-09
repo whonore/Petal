@@ -17,7 +17,7 @@ Server.default.waitForBoot({
     var nfxs, nctrls, bigStep, grp, fxs, fxInfo;
     var active;
     var titleFont, display, labels;
-    var soundSrc, cycleActive, swapActive, updateDisplay, debugLog, main;
+    var soundSrc, cycleActive, swapActive, updateDisplay, main;
 
     // Imports
     "common.scd".loadRelative(true);
@@ -223,22 +223,6 @@ Server.default.waitForBoot({
         }.defer;
     };
 
-    debugLog = {|curIdx, muted, active, fxInfo, locked|
-        if (~debug, {
-            postf("CurIdx: %\nActive: %\nMuted: %\n", curIdx, active[curIdx].defName, muted.notNil);
-            active.drop(-1).do {|fx, idx|
-                postf("% %controls: [ ", fx.defName, locked[idx].if({ "(locked) " }, { "" }));
-                fxInfo[fx.defName].ctrls.do {|ctrl|
-                    fx.get(ctrl.key, {|val|
-                        postf("%=% ", ctrl.key, val.round(0.01));
-                    });
-                };
-                ~serv.sync;
-                "]".postln;
-            };
-        });
-    };
-
     // Main event loop
     main = Routine {
         var muted = nil;
@@ -309,7 +293,6 @@ Server.default.waitForBoot({
             // Log new values
             if (changed, {
                 updateDisplay.value(curIdx, muted, active, fxInfo, locked);
-                // debugLog.value(curIdx, muted, active, fxInfo, locked);
             });
 
             // Autosave the current settings
