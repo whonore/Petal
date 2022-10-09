@@ -165,8 +165,9 @@
             });
 
             // Change selection
-            if (data.ctrlOffs[0] != 0, {
-                var off = (data.ctrlOffs[0] > 0).if({ 1; }, { -1; });
+            if (data.ctrlOffs.any {|x| x != 0; }, {
+                var ctrl = data.ctrlOffs.detect {|x| x != 0; };
+                var off = (ctrl > 0).if({ 1; }, { -1; });
                 selectProfile.value(off);
                 changed = true;
             });
